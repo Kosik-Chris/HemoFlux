@@ -26,8 +26,7 @@
  */
  //TODO: update state ctrl
  uint8_t state = 1; // 8 bit state control by default set to 0 for sleep, 1 for BLE setup and more SEE STATE DIAGRAM
-
-
+//#define DEBUG
 #define MAX_NUM_PPG 7 //8 -1 (i2c gyro/accel)
 #define NUM_PPG 3
 #define MAX_CHAR_HANDLE 25 //max number chars per service
@@ -40,11 +39,12 @@
 #include <BLEUtils.h>
 #include <BLEServer.h>
 #include <BLE2902.h>
+
+#include "MAX30105.h"
 #include "I2Cdev.h"
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
     #include "Wire.h"
 #endif
-#include "MAX30105.h"
 
 #define TCAADDR 0x70
 static BLEUUID RED_SERV_UUID(BLEUUID("0265204d-6cfd-4be7-8548-25f0f941b794"));
@@ -130,14 +130,15 @@ QueueHandle_t queue0,queue1,queue2;
 
 void setup()
 {
+
+  Serial.begin(115200);
+  while(!Serial);
   // join I2C bus (I2Cdev library doesn't do this automatically)
   #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
       Wire.begin();
   #elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
       Fastwire::setup(400, true);
   #endif
-  Serial.begin(115200);
-  while(!Serial); 
 
   int cpuSpeed = getCpuFrequencyMhz();
 
@@ -207,10 +208,10 @@ void setup()
 
 
 void Comm_Task_code( void * pvParameters ){
-  #ifdef DEBUG
-  //Serial.print("Task1 running on core ");
-  //Serial.println(xPortGetCoreID());
-  #endif
+//  #ifdef DEBUG
+//  Serial.print("Task1 running on core ");
+//  Serial.println(xPortGetCoreID());
+//  #endif
 
   for(;;){
     uint8_t txRed0[4], txIr0[4], txGr0[4];
