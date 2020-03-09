@@ -1,19 +1,26 @@
 /**
- * Function accepts 3 characters from the x64 BLE broadcast and returns the decimal
+ * Function accepts array of characters (string) from the x64 BLE broadcast and returns the decimal
  * result that was broadcasted
  */
 
 //function returns base64 dec value
-export function getDecFrom64(cOne, cTwo, cThree) {
-  let decOne, decTwo, decThree;
-  let decResult;
+export function getDecFrom64(cArray) {
+  //console.log(cArray);
+  let cArrlngth = cArray.length;
+  let newArr = cArray.split("=");
+  //console.log(newArr[0]);
+  let decResult = 0;
+  let j = 0;
 
-  //get individual results
-  decOne = getSingleDecFrom64(cOne);
-  decTwo = getSingleDecFrom64(cTwo);
-  decThree = getSingleDecFrom64(cThree);
-  //scale the results according to positional format
-  decResult = [decOne * 262144 + decTwo * 4096 + decThree * 64] / 256;
+  
+  for(var i = 0; i< newArr[0].length; i++){
+    let temp = getSingleDecFrom64(newArr[0][i]);
+    let power = Math.pow(64,(newArr[0].length-i));
+    decResult = (decResult +(temp*power));
+  }
+
+  decResult = decResult/256/4;
+
 
   return decResult;
 }
@@ -22,261 +29,261 @@ function getSingleDecFrom64(c) {
   let result;
   switch (c) {
     //ascii 0
-    case 48:
+    case '0':
       result = 52;
       break;
     //ascii 1
-    case 49:
+    case '1':
       result = 53;
       break;
     //ascii 2
-    case 50:
+    case '2':
       result = 54;
       break;
     //ascii 3
-    case 51:
+    case '3':
       result = 55;
       break;
     //ascii 4
-    case 52:
+    case '4':
       result = 56;
       break;
     //ascii 5
-    case 53:
+    case '5':
       result = 57;
       break;
     //ascii 6
-    case 54:
+    case '6':
       result = 58;
       break;
     //ascii 7
-    case 55:
+    case '7':
       result = 59;
       break;
     //ascii 8
-    case 56:
+    case '8':
       result = 60;
       break;
     //ascii 9
-    case 57:
+    case '9':
       result = 61;
       break;
     //ascii 65-90 = A-Z
     //ascii A
-    case 65:
+    case 'A':
       result = 0;
       break;
     //ascii B
-    case 66:
+    case 'B':
       result = 1;
       break;
     //ascii C
-    case 67:
+    case 'C':
       result = 2;
       break;
     //ascii D
-    case 68:
+    case 'D':
       result = 3;
       break;
     //ascii E
-    case 69:
+    case 'E':
       result = 4;
       break;
     //ascii F
-    case 70:
+    case 'F':
       result = 5;
       break;
     //ascii G
-    case 71:
+    case 'G':
       result = 6;
       break;
     //ascii H
-    case 72:
+    case 'H':
       result = 7;
       break;
     //ascii I
-    case 73:
+    case 'I':
       result = 8;
       break;
     //ascii J
-    case 74:
+    case 'J':
       result = 9;
       break;
     //ascii K
-    case 75:
+    case 'K':
       result = 10;
       break;
     //ascii L
-    case 76:
+    case 'L':
       result = 11;
       break;
     //ascii M
-    case 77:
+    case 'M':
       result = 12;
       break;
     //ascii N
-    case 78:
+    case 'N':
       result = 13;
       break;
     //ascii O
-    case 79:
+    case 'O':
       result = 14;
       break;
     //ascii P
-    case 80:
+    case 'P':
       result = 15;
       break;
     //ascii Q
-    case 81:
+    case 'Q':
       result = 16;
       break;
     //ascii R
-    case 82:
+    case 'R':
       result = 17;
       break;
     //ascii S
-    case 83:
+    case 'S':
       result = 18;
       break;
     //ascii T
-    case 84:
+    case 'T':
       result = 19;
       break;
     //ascii U
-    case 85:
+    case 'U':
       result = 20;
       break;
     //ascii V
-    case 86:
+    case 'V':
       result = 21;
       break;
     //ascii W
-    case 87:
+    case 'W':
       result = 22;
       break;
     //ascii X
-    case 88:
+    case 'X':
       result = 23;
       break;
     //ascii Y
-    case 89:
+    case 'Y':
       result = 24;
       break;
     //ascii Z
-    case 90:
+    case 'Z':
       result = 25;
       break;
     //ascii a-z, 97-122
     //ascii a
-    case 97:
+    case 'a':
       result = 26;
       break;
     //ascii b
-    case 98:
+    case 'b':
       result = 27;
       break;
     //ascii c
-    case 99:
+    case 'c':
       result = 28;
       break;
     //ascii d
-    case 100:
+    case 'd':
       result = 29;
       break;
     //ascii e
-    case 101:
+    case 'e':
       result = 30;
       break;
     //ascii f
-    case 102:
+    case 'f':
       result = 31;
       break;
     //ascii g
-    case 103:
+    case 'g':
       result = 32;
       break;
     //ascii h
-    case 104:
+    case 'h':
       result = 33;
       break;
     //ascii i
-    case 105:
+    case 'i':
       result = 34;
       break;
     //ascii j
-    case 106:
+    case 'j':
       result = 35;
       break;
     //ascii k
-    case 107:
+    case 'k':
       result = 36;
       break;
     //ascii l
-    case 108:
+    case 'l':
       result = 37;
       break;
     //ascii m
-    case 109:
+    case 'm':
       result = 38;
       break;
     //ascii n
-    case 110:
+    case 'n':
       result = 39;
       break;
     //ascii o
-    case 111:
+    case 'o':
       result = 40;
       break;
     //ascii p
-    case 112:
+    case 'p':
       result = 41;
       break;
     //ascii q
-    case 113:
+    case 'q':
       result = 42;
       break;
     //ascii r
-    case 114:
+    case 'r':
       result = 43;
       break;
     //ascii s
-    case 115:
+    case 's':
       result = 44;
       break;
     //ascii t
-    case 116:
+    case 't':
       result = 45;
       break;
     //ascii u
-    case 117:
+    case 'u':
       result = 46;
       break;
     //ascii v
-    case 118:
+    case 'v':
       result = 47;
       break;
     //ascii w
-    case 119:
+    case 'w':
       result = 48;
       break;
     //ascii x
-    case 120:
+    case 'x':
       result = 49;
       break;
     //ascii y
-    case 121:
+    case 'y':
       result = 50;
       break;
     //ascii z
-    case 122:
+    case 'z':
       result = 51;
       break;
     //ascii +
-    case 43:
+    case '+':
       result = 62;
       break;
     //ascii /
-    case 47:
+    case '/':
       result = 63;
       break;
   }

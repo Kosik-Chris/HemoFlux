@@ -92,13 +92,6 @@ static BLEUUID SYSTEMID_CHAR_UUID(BLEUUID((uint16_t)0x2A23));//unique ID within 
 MAX30105 ppg0,ppg1,ppg2;
 static int SYSTEM_ID =  1;
 
-
-
-void tcaselect(uint8_t);
-
-void initBLE(char[]);
-
-
 //***DECLARE BLE Server, Services, and Characterisitcs for reference
   char serverName [] = "PPG_SYS"; 
   BLEServer *ppgServer; 
@@ -122,17 +115,13 @@ void initBLE(char[]);
  uint8_t tempGreen0[4],tempGreen1[4],tempGreen2[4];
 //**END BLE TX/RX VARS
 
-//**Create tasks for comm processor & sensing processor
-TaskHandle_t Comm_Task;
-TaskHandle_t Sense_Task;
+void tcaselect(uint8_t);
 
-//QueueHandle_t queue;
-QueueHandle_t queue0,queue1,queue2;
+void initBLE(char[]);
 
 
-void setup()
-{
 
+void setup() {
   Serial.begin(115200);
   while(!Serial);
   // join I2C bus (I2Cdev library doesn't do this automatically)
@@ -183,155 +172,12 @@ void setup()
      initBLE(serverName); 
   }
 
-  //4 bytes * 3 * 100 = 1200 byte
-  queue0 = xQueueCreate(1200, sizeof(uint8_t)); //always store stricly 4*r,4*ir,4*g, MSB to LSB
-  queue1 = xQueueCreate(1200, sizeof(uint8_t)); //always store stricly 4*r,4*ir,4*g, MSB to LSB
-  queue2 = xQueueCreate(1200, sizeof(uint8_t)); //always store stricly 4*r,4*ir,4*g, MSB to LSB
-
-
-  xTaskCreatePinnedToCore(
-                    Comm_Task_code,   /* Task function. */
-                    "Comm_Task",     /* name of task. */
-                    10000,       /* Stack size of task */
-                    NULL,        /* parameter of the task */
-                    5,           /* priority of the task */
-                    &Comm_Task,      /* Task handle to keep track of created task */
-                    0);          /* pin task to core 0 */                  
-
-  xTaskCreatePinnedToCore(
-                    Sense_Task_code,   /* Task function. */
-                    "Sense_Task",     /* name of task. */
-                    10000,       /* Stack size of task */
-                    NULL,        /* parameter of the task */
-                    5,           /* priority of the task */
-                    &Sense_Task,      /* Task handle to keep track of created task */
-                    1);          /* pin task to core 1 */
-
-  
 }
 
-
-void Comm_Task_code( void * pvParameters ){
-//  #ifdef DEBUG
-//  Serial.print("Task1 running on core ");
-//  Serial.println(xPortGetCoreID());
-//  #endif
-
-  for(;;){
-    #ifdef SUCKIT
-      Serial.print("CORE 0");
-    #endif
-    uint8_t txRed0[4], txIr0[4], txGr0[4];
-    uint8_t txRed1[4], txIr1[4], txGr1[4];
-    uint8_t txRed2[4], txIr2[4], txGr2[4];
-    #ifdef DEBUG
-    uint32_t testRed, testIr, testGr;
-    #endif
-
-    xQueueReceive(queue0, &txRed0[0], portMAX_DELAY);
-    xQueueReceive(queue0, &txRed0[1], portMAX_DELAY);
-    xQueueReceive(queue0, &txRed0[2], portMAX_DELAY);
-    xQueueReceive(queue0, &txRed0[3], portMAX_DELAY);
-
-    xQueueReceive(queue0, &txIr0[0], portMAX_DELAY);
-    xQueueReceive(queue0, &txIr0[1], portMAX_DELAY);
-    xQueueReceive(queue0, &txIr0[2], portMAX_DELAY);
-    xQueueReceive(queue0, &txIr0[3], portMAX_DELAY);
-
-    xQueueReceive(queue0, &txGr0[0], portMAX_DELAY);
-    xQueueReceive(queue0, &txGr0[1], portMAX_DELAY);
-    xQueueReceive(queue0, &txGr0[2], portMAX_DELAY);
-    xQueueReceive(queue0, &txGr0[3], portMAX_DELAY);
-
-    xQueueReceive(queue1, &txRed1[0], portMAX_DELAY);
-    xQueueReceive(queue1, &txRed1[1], portMAX_DELAY);
-    xQueueReceive(queue1, &txRed1[2], portMAX_DELAY);
-    xQueueReceive(queue1, &txRed1[3], portMAX_DELAY);
-
-    xQueueReceive(queue1, &txIr1[0], portMAX_DELAY);
-    xQueueReceive(queue1, &txIr1[1], portMAX_DELAY);
-    xQueueReceive(queue1, &txIr1[2], portMAX_DELAY);
-    xQueueReceive(queue1, &txIr1[3], portMAX_DELAY);
-
-    xQueueReceive(queue1, &txGr1[0], portMAX_DELAY);
-    xQueueReceive(queue1, &txGr1[1], portMAX_DELAY);
-    xQueueReceive(queue1, &txGr1[2], portMAX_DELAY);
-    xQueueReceive(queue1, &txGr1[3], portMAX_DELAY);
-
-    xQueueReceive(queue2, &txRed2[0], portMAX_DELAY);
-    xQueueReceive(queue2, &txRed2[1], portMAX_DELAY);
-    xQueueReceive(queue2, &txRed2[2], portMAX_DELAY);
-    xQueueReceive(queue2, &txRed2[3], portMAX_DELAY);
-
-    xQueueReceive(queue2, &txIr2[0], portMAX_DELAY);
-    xQueueReceive(queue2, &txIr2[1], portMAX_DELAY);
-    xQueueReceive(queue2, &txIr2[2], portMAX_DELAY);
-    xQueueReceive(queue2, &txIr2[3], portMAX_DELAY);
-
-    xQueueReceive(queue2, &txGr2[0], portMAX_DELAY);
-    xQueueReceive(queue2, &txGr2[1], portMAX_DELAY);
-    xQueueReceive(queue2, &txGr2[2], portMAX_DELAY);
-    xQueueReceive(queue2, &txGr2[3], portMAX_DELAY);
-    
-    #ifdef DEBUG
-    memcpy(&testRed, &txRed0, sizeof(testRed));
-    memcpy(&testIr, &txIr0, sizeof(testIr));
-    memcpy(&testGr, &txGr0, sizeof(testGr));
-    
-    Serial.print("Tx red val: ");
-    Serial.println(testRed);
-    Serial.println();
-    Serial.print("Tx ir val: ");
-    Serial.println(testIr);
-    Serial.println();
-    Serial.print("Tx gr val: ");
-    Serial.println(testGr);
-    Serial.println();
-
-    #endif
-
-    red0Char->setValue(txRed0,4);
-    ir0Char->setValue(txIr0,4);
-    green0Char->setValue(txGr0,4);
-    red1Char->setValue(txRed1,4);
-    ir1Char->setValue(txIr1,4);
-    green1Char->setValue(txGr1,4);
-    red2Char->setValue(txRed2,4);
-    ir2Char->setValue(txIr2,4);
-    green2Char->setValue(txGr2,4);
-    red0Char->notify();
-    ir0Char->notify();
-    green0Char->notify();
-    red1Char->notify();
-    ir1Char->notify();
-    green1Char->notify();
-    red2Char->notify();
-    ir2Char->notify();
-    green2Char->notify();
-       
-  } 
-}
+void loop() {
 
 
-void Sense_Task_code( void * pvParameters ){
-  #ifdef DEBUG
-  Serial.print("Task2 running on core ");
-  Serial.println(xPortGetCoreID());
-  #endif
-  
-  const TickType_t xDelay = 100 / portTICK_PERIOD_MS;
-  for(;;){
-    #ifdef SUCKIT
-      Serial.println("CORE 1");
-    #endif
-     #ifdef DEBUG 
-      byte samplesTaken = 0;
-      long startTime = micros();
-    
-      while(samplesTaken < 10)
-      {
-     #endif  
-        tcaselect(0);
+   tcaselect(0);
         ppg0.check(); //Check the sensor, read up to 3 samples //i2c burst read
         while (ppg0.available()) //do we have new data? //loop around i2c burst read
         {
@@ -346,46 +192,28 @@ void Sense_Task_code( void * pvParameters ){
           //TODO: shift this into another thread/ process &|| core..
     
           //begin with LSB
-          tempRed0[3] = data_red>>24;
-          xQueueSend(queue0, &tempRed0[3], portMAX_DELAY);
-          tempRed0[2] = data_red>>16;
-          xQueueSend(queue0, &tempRed0[2], portMAX_DELAY);
-          tempRed0[1] = data_red>>8;
-          xQueueSend(queue0, &tempRed0[1], portMAX_DELAY);
-          tempRed0[0] = data_red;
-          xQueueSend(queue0, &tempRed0[0], portMAX_DELAY);
+          tempRed0[0] = data_red>>24;
+          tempRed0[1] = data_red>>16;
+          tempRed0[2] = data_red>>8;
+          tempRed0[3] = data_red;
     
-          tempIr0[3] = data_ir>>24;
-          xQueueSend(queue0, &tempIr0[3], portMAX_DELAY);
-          tempIr0[2] = data_ir>>16;
-          xQueueSend(queue0, &tempIr0[2], portMAX_DELAY);
-          tempIr0[1] = data_ir>>8;
-          xQueueSend(queue0, &tempIr0[1], portMAX_DELAY);
-          tempIr0[0] = data_ir;
-          xQueueSend(queue0, &tempIr0[0], portMAX_DELAY);
+          tempIr0[0] = data_ir>>24;
+          tempIr0[1] = data_ir>>16;
+          tempIr0[2] = data_ir>>8;
+          tempIr0[3] = data_ir;
     
-          tempGreen0[3] = data_green>>24;
-          xQueueSend(queue0, &tempGreen0[3], portMAX_DELAY);
-          tempGreen0[2] = data_green>>16;
-          xQueueSend(queue0, &tempGreen0[2], portMAX_DELAY);
-          tempGreen0[1] = data_green>>8;
-          xQueueSend(queue0, &tempGreen0[1], portMAX_DELAY);
-          tempGreen0[0] = data_green;
-          xQueueSend(queue0, &tempGreen0[0], portMAX_DELAY);
-    
-          #ifdef DEBUG
-            uint32_t testRead;
-            memcpy(&testRead, &tempRed0, sizeof(testRead));
-          #endif
+          tempGreen0[0] = data_green>>24;
+          tempGreen0[1] = data_green>>16;
+          tempGreen0[2] = data_green>>8;
+          tempGreen0[3] = data_green;
+
+          red0Char->setValue(tempRed0,4);
+          ir0Char->setValue(tempIr0,4);
+          green0Char->setValue(tempGreen0,4);
+          red0Char->notify();
+          ir0Char->notify();
+          green0Char->notify();
           
-          #ifdef DEBUG
-            Serial.print("TEMP RED: ");
-            Serial.print(testRead);
-            Serial.println();
-            Serial.print("REAL RED: ");
-            Serial.print(data_red);
-            Serial.println();
-          #endif   
           
           ppg0.nextSample(); //We're finished with this sample so move to next sample
         }
@@ -413,32 +241,27 @@ void Sense_Task_code( void * pvParameters ){
           //TODO: shift this into another thread/ process &|| core..
     
           //begin with LSB
-          tempRed1[3] = data_red>>24;
-          xQueueSend(queue1, &tempRed1[3], portMAX_DELAY);
-          tempRed1[2] = data_red>>16;
-          xQueueSend(queue1, &tempRed1[2], portMAX_DELAY);
-          tempRed1[1] = data_red>>8;
-          xQueueSend(queue1, &tempRed1[1], portMAX_DELAY);
-          tempRed1[0] = data_red;
-          xQueueSend(queue1, &tempRed1[0], portMAX_DELAY);
+          tempRed1[0] = data_red>>24;
+          tempRed1[1] = data_red>>16;
+          tempRed1[2] = data_red>>8;
+          tempRed1[3] = data_red;
     
-          tempIr1[3] = data_ir>>24;
-          xQueueSend(queue1, &tempIr1[3], portMAX_DELAY);
-          tempIr1[2] = data_ir>>16;
-          xQueueSend(queue1, &tempIr1[2], portMAX_DELAY);
-          tempIr1[1] = data_ir>>8;
-          xQueueSend(queue1, &tempIr1[1], portMAX_DELAY);
-          tempIr1[0] = data_ir;
-          xQueueSend(queue1, &tempIr1[0], portMAX_DELAY);
+          tempIr1[0] = data_ir>>24;
+          tempIr1[1] = data_ir>>16;
+          tempIr1[2] = data_ir>>8;
+          tempIr1[3] = data_ir;
     
-          tempGreen1[3] = data_green>>24;
-          xQueueSend(queue1, &tempGreen1[3], portMAX_DELAY);
-          tempGreen1[2] = data_green>>16;
-          xQueueSend(queue1, &tempGreen1[2], portMAX_DELAY);
-          tempGreen1[1] = data_green>>8;
-          xQueueSend(queue1, &tempGreen1[1], portMAX_DELAY);
-          tempGreen1[0] = data_green;
-          xQueueSend(queue1, &tempGreen1[0], portMAX_DELAY);
+          tempGreen1[0] = data_green>>24;
+          tempGreen1[1] = data_green>>16;
+          tempGreen1[2] = data_green>>8;
+          tempGreen1[3] = data_green;
+
+          red1Char->setValue(tempRed1,4);
+          ir1Char->setValue(tempIr1,4);
+          green1Char->setValue(tempGreen1,4);
+          red1Char->notify();
+          ir1Char->notify();
+          green1Char->notify();
           
           ppg1.nextSample(); //We're finished with this sample so move to next sample
         }
@@ -455,46 +278,31 @@ void Sense_Task_code( void * pvParameters ){
           //TODO: shift this into another thread/ process &|| core..
     
           //begin with LSB
-          tempRed2[3] = data_red>>24;
-          xQueueSend(queue2, &tempRed2[3], portMAX_DELAY);
-          tempRed2[2] = data_red>>16;
-          xQueueSend(queue2, &tempRed2[2], portMAX_DELAY);
-          tempRed2[1] = data_red>>8;
-          xQueueSend(queue2, &tempRed2[1], portMAX_DELAY);
-          tempRed2[0] = data_red;
-          xQueueSend(queue2, &tempRed2[0], portMAX_DELAY);
+          tempRed2[0] = data_red>>24;
+          tempRed2[1] = data_red>>16;;
+          tempRed2[2] = data_red>>8;
+          tempRed2[3] = data_red;
     
-          tempIr2[3] = data_ir>>24;
-          xQueueSend(queue2, &tempIr2[3], portMAX_DELAY);
-          tempIr2[2] = data_ir>>16;
-          xQueueSend(queue2, &tempIr2[2], portMAX_DELAY);
-          tempIr2[1] = data_ir>>8;
-          xQueueSend(queue2, &tempIr2[1], portMAX_DELAY);
-          tempIr2[0] = data_ir;
-          xQueueSend(queue2, &tempIr2[0], portMAX_DELAY);
+          tempIr2[0] = data_ir>>24;
+          tempIr2[1] = data_ir>>16;
+          tempIr2[2] = data_ir>>8;
+          tempIr2[3] = data_ir;
     
-          tempGreen2[3] = data_green>>24;
-          xQueueSend(queue2, &tempGreen2[3], portMAX_DELAY);
-          tempGreen2[2] = data_green>>16;
-          xQueueSend(queue2, &tempGreen2[2], portMAX_DELAY);
-          tempGreen2[1] = data_green>>8;
-          xQueueSend(queue2, &tempGreen2[1], portMAX_DELAY);
-          tempGreen2[0] = data_green;
-          xQueueSend(queue2, &tempGreen2[0], portMAX_DELAY);   
+          tempGreen2[0] = data_green>>24;
+          tempGreen2[1] = data_green>>16;
+          tempGreen2[2] = data_green>>8;
+          tempGreen2[3] = data_green;
+
+          red2Char->setValue(tempRed2,4);
+          ir2Char->setValue(tempIr2,4);
+          green2Char->setValue(tempGreen2,4);
+          red2Char->notify();
+          ir2Char->notify();
+          green2Char->notify();
+             
           ppg2.nextSample(); //We're finished with this sample so move to next sample
         }
 
-        vTaskDelay(xDelay);
-      
-  }
-}
-
-
-
-void loop(){
-  vTaskDelete (NULL);
-//  Serial.println("helloooooo");
-//  delay(100);
 }
 
 /**

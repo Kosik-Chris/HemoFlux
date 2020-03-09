@@ -1,15 +1,43 @@
 import React, {Component} from 'react';
-import {StyleSheet, processColor,Dimensions} from 'react-native';
+import {StyleSheet, processColor, Dimensions, View, Text} from 'react-native';
 
 import {LineChart} from 'react-native-charts-wrapper';
-import { BleManager, ScanMode } from 'react-native-ble-plx';
+import { BleManager, ScanMode, Service } from 'react-native-ble-plx';
 import { getDecFrom64 } from '../utility/DecFrom64';
 let ScanOptions = { scanMode: ScanMode.LowLatency };
 let deviceList = new Map(); //holder for all device
 
-const redServiceID = '0265204d-6cfd-4be7-8548-25f0f941b794';
-const irServiceID = 'a9e81533-d3b4-4b20-9c34-6d817942b69a';
-const greenServiceID = 'a9e81533-d3b4-4b20-9c34-6d817942b69a';
+//TODO: move all device/ system ID components into seperate service lookup config file!
+
+const devID = 'D8:A0:1D:6A:90:D2';
+const genAttributeSID = '00001801-0000-100-8000-00805f9b34fb';
+
+
+const genAccessSID = '00001800-0000-100-8000-00805f9b34fb';
+
+
+const battLvlSID = '0000180F-0000-100-8000-00805f9b34fb';
+
+
+const heartRateSID = '0000180D-0000-100-8000-00805f9b34fb';
+
+
+const devInfoSID = '0000180A-0000-100-8000-00805f9b34fb';
+
+
+const redSID = '0265204d-6cfd-4be7-8548-25f0f941b794';
+
+
+const irSID = 'a9e81533-d3b4-4b20-9c34-6d817942b69a';
+
+
+const greenSID = 'a9e81533-d3b4-4b20-9c34-6d817942b69a';
+
+
+const red0CharID = '050447d6-8ac9-4bd8-b004-0a5fe425029a';
+const red1CharID = '59eb1a6f-9839-483d-90aa-511b96585820';
+const red2CharID = '031edcf6-02c9-4267-a657-91eacd0febc8';
+
 
 const colors = [
   processColor('red'),
@@ -22,18 +50,9 @@ const colors = [
 
 let dataWidth = 50; // #samples 100ms * 100 = 10s
 let updateRate = 16; //time in ms to update graph
-
-//let values = [dataWidth]; //initialize array with datawidth holding
 let valIndex = 0;
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'stretch',
-    backgroundColor: 'transparent',
-  },
-});
+const manager = new BleManager();
 
 export default class DataStream extends Component {
   static displayName = 'DataStream';
@@ -42,25 +61,6 @@ export default class DataStream extends Component {
     super(props);
     this.state = {
       //values: [0], //initialize for
-      orientation: '',
-      deviceLIST: [],
-      device: {
-        name: null,
-        id: null,
-        rssi: null,
-        batt_lvl: null,
-        heart_rate: null,
-        dev_info: {
-            manufact_name: null,
-            model_num: null,
-            hardware_version: null,
-            firmware_version: null,
-            system_id: null,
-        },
-        red_val: null,
-        ir_val: null,
-        green_val: null
-      },
       values: [{x: 0, y: 0}],
       colorIndex: 0,
       marker: {
@@ -70,9 +70,46 @@ export default class DataStream extends Component {
         markerColor: processColor('#F0C0FF8C'),
         textColor: processColor('white'),
       },
+      orientation: '',
+      deviceLIST: [],
+      device: {
+        connected: false,  
+        name: null,
+        id: null,
+        rssi: null,
+        batt_lvl: null,
+        heart_rate: null,
+        red0_val: null,
+        red1_val: null,
+        red2_val: null,
+        ir_val: null,
+        green_val: null,
+        dev_info: {
+            manufact_name: null,
+            model_num: null,
+            hardware_version: null,
+            firmware_version: null,
+            system_id: null,
+        },
+      },
     };
-    this.manager = new BleManager();
   }
+
+
+  getOrientation = () => {
+    if (this.refs.rootView) {
+      if (Dimensions.get('window').width < Dimensions.get('window').height) {
+        this.setState({ orientation: 'portrait' });
+      } else {
+        this.setState({ orientation: 'landscape' });
+      }
+    }
+  };
+
+  logMapElements(value, key, map) {
+    console.log(key + value.name);
+  }
+
 
   next(values, colorIndex) {
     return {
@@ -81,7 +118,7 @@ export default class DataStream extends Component {
           {
             values: values,
             //time: time,
-            label: 'Sine function',
+            label: 'data..',
 
             config: {
               drawValues: false, //draws values at points on graph
@@ -106,72 +143,30 @@ export default class DataStream extends Component {
     let temp = values.slice();
     //console.log(temp);
     temp.shift();
-    temp.concat([Math.floor(Math.random() * 100 + 1)]);
+    temp.concat(this.state.red0_val);
     return temp;
   }
 
-  getOrientation = () => {
-    if (this.refs.rootView) {
-      if (Dimensions.get('window').width < Dimensions.get('window').height) {
-        this.setState({ orientation: 'portrait' });
-      } else {
-        this.setState({ orientation: 'landscape' });
-      }
-    }
-  };
-
-  logMapElements(value, key, map) {
-    console.log(key + value.name);
-  }
-
   componentDidMount() {
-    this.getOrientation();
-    this.manager.enable(); //enable hardware bluetooth stack
-    Dimensions.addEventListener('change', () => {
-        this.getOrientation(); //listen for changes on device orientation
-      });
-    const subscription = this.manager.onStateChange(state => {
+    manager.enable(); //enable hardware bluetooth stack
+    const subscription = manager.onStateChange(state => {
     if (state === 'PoweredOn') {
-        this.scanObserverValues(); //start scanning for devices immediately
+        this.scanDevices(); //start scanning for devices immediately
     }
     if (state === 'PoweredOff') {
 
     }
     }, true);
-    this.interval = setInterval(() => {
-      if (this.state.values.length >= dataWidth) {
-        // https://github.com/PhilJay/MPAndroidChart/issues/2450
-        // MpAndroidChart 3.0.2 will crash when data entry list is empty.
 
-        this.refs.chart.highlights([]);
-        //shift values left continually
-        this.setState({
-          //values: this.state.values,
-          values: this.shiftData(this.state.values),
-          colorIndex: 1,
-        });
-      } else {
-        this.setState({
-          values: this.state.values.concat({
-            x: valIndex,
-            y: Math.floor(Math.random() * 100 + 1),
-          }),
-          colorIndex: 1, //(this.state.colorIndex + 1) % colors.length
-        });
-      }
-      //this.shiftData(this.state.values);
-      valIndex = valIndex + updateRate;
-      //console.log(valIndex);
-    }, updateRate);
   }
 
   componentWillUnmount() {
-    clearInterval(this.interval);
+      //disconnect from device
   }
 
-  scanObserverValues(){
-    this.manager.startDeviceScan(
-        [redServiceID], //only scan for red service being advertised
+  scanDevices(){
+    manager.startDeviceScan(
+        [redSID], //only scan for red service being advertised
         ScanOptions,
         //This function is called for EVERY scanned device!
         (error,device) => {
@@ -179,23 +174,158 @@ export default class DataStream extends Component {
                 console.log(error.message);
                 return;
               }
-                console.log(device.isConnected);
+            if(device.name == 'PPG_SYS'){
+                manager.stopDeviceScan(); //device found
+                console.log('connecting to device..');
+                this.connectToDevice(device);
+            }
 
         }
-    )
+    );
+
   }
 
+  async connectToDevice(device){
+    console.log(device.name);
+    await device.connect();
+    this.setState({
+        device: {
+            connected: true
+        }
+    });
+    console.log('connected '+device.id);
+    this.getServAndChar(device);
+
+  }
+
+  async getServAndChar(device){
+    let redService, red0CHAR, red1CHAR, red2CHAR;
+    let irService, ir0CHAR, ir1CHAR, ir2CHAR;
+    let grService, gr0CHAR, gr1CHAR, gr2CHAR;
+    await device.discoverAllServicesAndCharacteristics();
+    const services = await device.services(); //array of services
+    //console.log(services);
+    services.forEach(element => {
+        //console.log(element.uuid);
+        if(element.uuid == redSID){
+            //this element is correct service
+            redService = element;
+            //console.log(element.uuid);
+        }
+    });
+    //console.log(redService.uuid);
+    const chars = await redService.characteristics(); //array of chars
+    //console.log(chars);
+    chars.forEach(element => {
+        if(element.uuid == red0CharID){
+            console.log('uuid: '+element.uuid+' readable?: '+element.isReadable);
+            red0CHAR = element;
+        }
+    });
+        let value = await device.monitorCharacteristicForService(
+            redSID,
+            red0CharID,
+            (error, chr) => {
+                let basesixfour = chr.value;
+                let basedec= getDecFrom64(basesixfour);
+                console.log('0th: '+ basedec);
+                this.setState({
+                    device: {
+                        red0_val: basedec
+                    }
+                });
+            }
+        ); //promise returns char with update value
+
+        let value1 = await device.monitorCharacteristicForService(
+            redSID,
+            red1CharID,
+            (error, chr) => {
+                let basesixfour = chr.value;
+                let basedec = getDecFrom64(basesixfour);
+                console.log('1st: '+ basedec);
+            }
+        ); //promise returns char with update value
+
+        let value2 = await device.monitorCharacteristicForService(
+            redSID,
+            red2CharID,
+            (error, chr) => {
+                let basesixfour = chr.value;
+                let basedec = getDecFrom64(basesixfour);
+                console.log('2nd: '+ basedec);
+            }
+        ); //promise returns char with update value
+    
+
+
+  }
+  
+
+
+
   render() {
-    const {values, colorIndex} = this.state;
+    const {values, colorIndex, device} = this.state;
     const config = this.next(values, colorIndex);
-    return (
-      <LineChart
-        data={config.data}
-        xAxis={config.xAxis}
-        style={styles.container}
-        marker={this.state.marker}
-        ref="chart"
-      />
-    );
+        return (
+            <View style={styles.body}>
+              <View style={styles.headerRow}>
+                <View style={styles.rowItemBold}>
+                  <Text>Red 0 Value: {device.red0_val}</Text>
+                </View>
+              </View>
+            </View>
+          );
   }
 }
+
+const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'stretch',
+      backgroundColor: 'transparent',
+    },
+    body: {
+      flex: 1,
+      backgroundColor: '#FFFFFF',
+      alignItems: 'flex-start',
+      flexDirection: 'column',
+      height: '90%'
+    },
+    highlight: {
+      fontWeight: '700'
+    },
+    headerRow: {
+      flexDirection: 'row',
+      marginVertical: 10,
+      paddingBottom: 10,
+      paddingRight: 15,
+      paddingLeft: 15,
+      marginBottom: 5,
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      fontSize: 10
+    },
+    row: {
+      flexDirection: 'row',
+      marginVertical: 5,
+      paddingBottom: 5,
+      paddingRight: 15,
+      paddingLeft: 15,
+      marginBottom: 5,
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      fontSize: 100
+    },
+    rowItem: {
+      padding: 1,
+      width: '33%',
+      flexDirection: 'row'
+    },
+    rowItemBold: {
+      padding: 1,
+      width: '33%',
+      flexDirection: 'row'
+    },
+  });
