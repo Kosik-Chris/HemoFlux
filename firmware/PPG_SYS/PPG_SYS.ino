@@ -2,7 +2,7 @@
   PPG_SYS
   By: CASSS, Christopher J. Kosik & Jose I. Rodriguez-Labra
   Date: February 20th, 2020
-  Version: 0.0.1
+  Version: 0.0.2
 
   Based on Neil Kolban example for IDF.
   Credit to Rui Santos on his amazing blog and info on multicore coding for esp32: https://randomnerdtutorials.com/esp32-dual-core-arduino-ide/
@@ -27,14 +27,13 @@
  //TODO: update state ctrl
  uint8_t state = 1; // 8 bit state control by default set to 0 for sleep, 1 for BLE setup and more SEE STATE DIAGRAM
 //#define DEBUG
-//#define SUCKIT
 #define MAX_NUM_PPG 7 //8 -1 (i2c gyro/accel)
 #define NUM_PPG 3
 #define MAX_CHAR_HANDLE 25 //max number chars per service
-#define HARDWARE_VERSION "V1.0"
-#define FIRMWARE_VERSION "V1.0"
+#define HARDWARE_VERSION "V0.0.2"
+#define FIRMWARE_VERSION "V0.0.2"
 #define MANUFACTURE_NAME "CASSS"
-#define MODEL_NUM "Foot-V1.0"
+#define MODEL_NUM "1"
 
 #include <BLEDevice.h>
 #include <BLEUtils.h>
@@ -90,6 +89,8 @@ static BLEUUID SYSTEMID_CHAR_UUID(BLEUUID((uint16_t)0x2A23));//unique ID within 
 
 //MAX30105 particleSensor;
 MAX30105 ppg0,ppg1,ppg2;
+const int battLvlPin = 34;
+int battLvl = 0;
 static int SYSTEM_ID =  1;
 
 //***DECLARE BLE Server, Services, and Characterisitcs for reference
@@ -302,6 +303,11 @@ void loop() {
              
           ppg2.nextSample(); //We're finished with this sample so move to next sample
         }
+
+        battLvl = analogRead(battLvlPin);
+        battChar->setValue(battLvl);
+        battChar->notify();
+        //Serial.println(battLvl);
 
 }
 
