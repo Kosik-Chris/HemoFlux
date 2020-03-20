@@ -2,7 +2,7 @@
   PPG_SYS
   By: CASSS, Christopher J. Kosik & Jose I. Rodriguez-Labra
   Date: February 20th, 2020
-  Version: 0.0.2
+  Version: 0.0.3
 
   Based on Neil Kolban example for IDF.
   Credit to Rui Santos on his amazing blog and info on multicore coding for esp32: https://randomnerdtutorials.com/esp32-dual-core-arduino-ide/
@@ -32,67 +32,39 @@
 #include <BLEServer.h>
 #include <BLE2902.h>
 #include "MAX30105.h"
-#include "I2Cdev.h"
-#include "HemoFlux_config.h"
+#include <I2Cdev.h>
+#include <MPU6050.h>
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
     #include "Wire.h"
 #endif
-
-#define TCAADDR 0x70
-//static BLEUUID RED_SERV_UUID(BLEUUID("0265204d-6cfd-4be7-8548-25f0f941b794"));
-
-
-//static BLEUUID IR_SERV_UUID(BLEUUID("a9e81533-d3b4-4b20-9c34-6d817942b69a"));
-
-//static BLEUUID GREEN_SERV_UUID(BLEUUID("08fcbfeb-ea38-4085-9800-cd03ff14f2a0"));
-
-//static BLEUUID HR_SERV_UUID(BLEUUID((uint16_t)0x180D));//Hr serv uuid
-//static BLEUUID HR_CHAR_UUID(BLEUUID((uint16_t)0x2A37)); //Hr char uuid
-//
-//static BLEUUID BATT_SERV_UUID(BLEUUID((uint16_t)0x180F));// Batt serv uuid
-//static BLEUUID BATT_CHAR_UUID(BLEUUID((uint16_t)0x2A19)); //Batt level char uuid
-//
-//static BLEUUID DEVINFO_SERV_UUID(BLEUUID((uint16_t)0x180A));// Batt serv uuid
-//static BLEUUID MANUFACT_CHAR_UUID(BLEUUID((uint16_t)0x2A29));// manufacture string
-//static BLEUUID MODELNUM_CHAR_UUID(BLEUUID((uint16_t)0x2A24));// model number string
-//static BLEUUID HARDWAREV_CHAR_UUID(BLEUUID((uint16_t)0x2A27));//hardware version string
-//static BLEUUID FIRMWAREV_CHAR_UUID(BLEUUID((uint16_t)0x2A26));//firmware version string
-//static BLEUUID SYSTEMID_CHAR_UUID(BLEUUID((uint16_t)0x2A23));//unique ID within mesh of n devices
-
-//MAX30105 particleSensor;
-MAX30105 ppg0,ppg1,ppg2,ppg3,ppg4,ppg5,ppg6; //TODO: find better allocation technique
-const int battLvlPin = 34;
-int battLvl = 0;
-static int SYSTEM_ID =  1;
+#include "HemoFlux_config.h"
 
 //***DECLARE BLE Server, Services, and Characterisitcs for reference
   char serverName [] = "HemoFlux"; 
-  BLEServer *ppgServer; 
-  BLEService *redService,*irService,*greenService,*battService,*hrService,*devinfoService; 
-  BLECharacteristic *red0Char,*red1Char,*red2Char; 
-  BLECharacteristic *ir0Char,*ir1Char,*ir2Char; 
-  BLECharacteristic *green0Char,*green1Char,*green2Char; 
+  BLEServer *ppgServer;
+  BLEService *redService,*irService,*greenService,*battService,*hrService,*devinfoService;
+
+  BLECharacteristic *redChars[NUM_PPG];
+  BLECharacteristic *irChars[NUM_PPG];
+  BLECharacteristic *greenChars[NUM_PPG];
   BLECharacteristic *battChar,*hrChar;
   BLECharacteristic *manufactChar,*modelnumChar,*hardwareChar,*firmwareChar,*systemidChar;
 
   BLEAdvertising *pAdvertising; 
 //***END DECLARE BLE Server, Services, and Characteristics for reference
 
+//all i2c devices
+MAX30105 ppgCollection[NUM_PPG];
+MPU6050 imu(0x69); // <-- use for AD0 high
 
-//**BLE TX/RX VARS
-// uint8_t tempRed [4];
-// uint8_t tempIr [4];
-// uint8_t tempGreen [4];
- uint8_t tempRed0[4],tempRed1[4],tempRed2[4];
- uint8_t tempIr0[4],tempIr1[4],tempIr2[4];
- uint8_t tempGreen0[4],tempGreen1[4],tempGreen2[4];
-//**END BLE TX/RX VARS
-
-void tcaselect(uint8_t);
-
+void tSelect(uint8_t);
 void initBLE(char[]);
 
+int BATTLVL = 0;
+int SYSTEM_ID = 1;
 
+int16_t ax, ay, az; //accel 3 holder variables per dimension
+int16_t gx, gy, gz; //gyro 3 holder variables per dimension
 
 void setup() {
   Serial.begin(115200);
@@ -104,174 +76,97 @@ void setup() {
       Fastwire::setup(400, true);
   #endif
 
-  int cpuSpeed = getCpuFrequencyMhz();
-
   //setup the MAX30105 that are attached, and IMU
+  for(int i=0;i<NUM_PPG; i++){
+    tSelect(i); //select slot in i2c multi
+    if(ppgCollection[i].begin(Wire, I2C_SPEED_FAST) == false){
+      //we could not connect/no device at this location/ some i2c error.\
+      //TODO: error detect lines on multiplex (graceful hardware error handling)
+      //we need to attempt to see if there are other possible locations we can attach this sensor object
+       #ifdef DEBUG
+        Serial.print("FATAL ERROR at TCASE. Check wiring");
+       #endif 
+      while(1);
+    }
+  }
+  //move to reserved i2c slot and initilize
+  tSelect(MAX_NUM_PPG+1);
+  imu.initialize();
   
-
-  tcaselect(0);
-  // Initialize sensor
-  if(ppg0.begin(Wire, I2C_SPEED_FAST) == false) //Use default I2C port, 400kHz speed
-  {
-    while (1);
-  }
-  tcaselect(1);
-  if(ppg1.begin(Wire, I2C_SPEED_FAST) == false) //Use default I2C port, 400kHz speed
-  {
-    while (1);
-  }
-  tcaselect(2);
-  if(ppg2.begin(Wire, I2C_SPEED_FAST) == false) //Use default I2C port, 400kHz speed
-  {
-    while (1);
-  }
-  
- tcaselect(0);
-  ppg0.setup(ledBrightness, sampleAverage, ledMode, sampleRate, pulseWidth, adcRange); //Configure sensor with these settings
-  tcaselect(1);
-  ppg1.setup(ledBrightness, sampleAverage, ledMode, sampleRate, pulseWidth, adcRange); //Configure sensor with these settings
-  tcaselect(2);
-  ppg2.setup(ledBrightness, sampleAverage, ledMode, sampleRate, pulseWidth, adcRange); //Configure sensor with these settings
-  tcaselect(0);
-    if(state == 1){
-     initBLE(serverName); 
+  //initialize MAX30105 with paramaters
+  for(int i=0;i<NUM_PPG; i++){
+     ppgCollection[i].setup(ledBrightness, sampleAverage, ledMode, sampleRate, pulseWidth, adcRange);
   }
 
+  //disconnected, state machine set to advertise servies, should be default state
+  if(state == 1){
+    //initialize server);
+   initBLE(serverName); 
+  }
+
+  //TODO: Lots of fine tune continual tune of imu should be done and tested
+  //calibrate (PI tune) imu
+  imu.setXAccelOffset(16957);
+  imu.setYAccelOffset(-370);
+  imu.setZAccelOffset(423);
 }
 
 void loop() {
-
+  #ifdef DEBUG
    long startTime = micros();
-   tcaselect(0);
-        ppg0.check(); //Check the sensor, read up to 3 samples //i2c burst read
-        while (ppg0.available()) //do we have new data? //loop around i2c burst read
-        {
-          uint32_t data_red = ppg0.getFIFORed();
-          uint32_t data_ir = ppg0.getFIFOIR();
-          uint32_t data_green = ppg0.getFIFOGreen();
-    
-          //tx the data
-          //TODO: shift this into another thread/ process &|| core..
-    
-          //begin with LSB
-          tempRed0[0] = data_red>>24;
-          tempRed0[1] = data_red>>16;
-          tempRed0[2] = data_red>>8;
-          tempRed0[3] = data_red;
-    
-          tempIr0[0] = data_ir>>24;
-          tempIr0[1] = data_ir>>16;
-          tempIr0[2] = data_ir>>8;
-          tempIr0[3] = data_ir;
-    
-          tempGreen0[0] = data_green>>24;
-          tempGreen0[1] = data_green>>16;
-          tempGreen0[2] = data_green>>8;
-          tempGreen0[3] = data_green;
+   #endif
+  //iterate through PPG, check if available, dequeue FIFO, set BLE char value, notify BLE char, advance FIFO tail pointer
+       for(int i=0; i<NUM_PPG; i++){
+          tSelect(i);
+          ppgCollection[i].check(); //Check the sensor, read up to 3 samples //i2c burst read
+          while (ppgCollection[i].available()){
+            uint32_t data_r = ppgCollection[i].getFIFORed();
+            uint32_t data_i = ppgCollection[i].getFIFOIR();
+            uint32_t data_g = ppgCollection[i].getFIFOGreen();
+            
+            redChars[i]->setValue((uint8_t*) &data_r,4);   
+            irChars[i]->setValue((uint8_t*) &data_i,4);    
+            greenChars[i]->setValue((uint8_t*) &data_g,4); 
+            redChars[i]->notify(); 
+            irChars[i]->notify();
+            greenChars[i]->notify();
+            ppgCollection[i].nextSample(); //We're finished with this sample so move to next sample
+          }
+       }
 
-          red0Char->setValue(tempRed0,4);
-          ir0Char->setValue(tempIr0,4);
-          green0Char->setValue(tempGreen0,4);
-          red0Char->notify();
-          ir0Char->notify();
-          green0Char->notify();
-          
-          
-          ppg0.nextSample(); //We're finished with this sample so move to next sample
-        }
-    
-      tcaselect(1);
-      ppg1.check();
-      while (ppg1.available()) //do we have new data? //loop around i2c burst read
-        {
-          uint32_t data_red = ppg1.getFIFORed();
-          uint32_t data_ir = ppg1.getFIFOIR();
-          uint32_t data_green = ppg1.getFIFOGreen();
-    
-          //tx the data
-          //TODO: shift this into another thread/ process &|| core..
-    
-          //begin with LSB
-          tempRed1[0] = data_red>>24;
-          tempRed1[1] = data_red>>16;
-          tempRed1[2] = data_red>>8;
-          tempRed1[3] = data_red;
-    
-          tempIr1[0] = data_ir>>24;
-          tempIr1[1] = data_ir>>16;
-          tempIr1[2] = data_ir>>8;
-          tempIr1[3] = data_ir;
-    
-          tempGreen1[0] = data_green>>24;
-          tempGreen1[1] = data_green>>16;
-          tempGreen1[2] = data_green>>8;
-          tempGreen1[3] = data_green;
+        imu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+        double temp = imu.getTemperature();
 
-          red1Char->setValue(tempRed1,4);
-          ir1Char->setValue(tempIr1,4);
-          green1Char->setValue(tempGreen1,4);
-          red1Char->notify();
-          ir1Char->notify();
-          green1Char->notify();
-          
-          ppg1.nextSample(); //We're finished with this sample so move to next sample
-        }
-
-      tcaselect(2);
-      ppg2.check();
-      while (ppg2.available()) //do we have new data? //loop around i2c burst read
-        {
-          uint32_t data_red = ppg2.getFIFORed();
-          uint32_t data_ir = ppg2.getFIFOIR();
-          uint32_t data_green = ppg2.getFIFOGreen();
-    
-          //tx the data
-          //TODO: shift this into another thread/ process &|| core..
-    
-          //begin with LSB
-          tempRed2[0] = data_red>>24;
-          tempRed2[1] = data_red>>16;;
-          tempRed2[2] = data_red>>8;
-          tempRed2[3] = data_red;
-    
-          tempIr2[0] = data_ir>>24;
-          tempIr2[1] = data_ir>>16;
-          tempIr2[2] = data_ir>>8;
-          tempIr2[3] = data_ir;
-    
-          tempGreen2[0] = data_green>>24;
-          tempGreen2[1] = data_green>>16;
-          tempGreen2[2] = data_green>>8;
-          tempGreen2[3] = data_green;
-
-          red2Char->setValue(tempRed2,4);
-          ir2Char->setValue(tempIr2,4);
-          green2Char->setValue(tempGreen2,4);
-          red2Char->notify();
-          ir2Char->notify();
-          green2Char->notify();
-             
-          ppg2.nextSample(); //We're finished with this sample so move to next sample
-        }
-
-        battLvl = analogRead(battLvlPin);
-        battChar->setValue(battLvl);
+        BATTLVL = analogRead(BATTLVLPIN);
+        battChar->setValue(BATTLVL);
         battChar->notify();
+        #ifdef DEBUG
         long endTime = micros();
         Serial.print("Hz[");
         Serial.print(1 / ((endTime - startTime) / 1000000.0), 2);
         Serial.print("]");
         Serial.println(" ");
 
+        // display tab-separated accel/gyro x/y/z values
+//        Serial.print((temp)/340 + 36.53); Serial.print(" ");
+//        Serial.print(ax); Serial.print(" ");
+//        Serial.print(ay); Serial.print(" ");
+//        Serial.print(az); Serial.print(" ");
+//        Serial.println();
+//        Serial.print(gx); Serial.print(" ");
+//        Serial.print(gy); Serial.print(" ");
+//        Serial.print(gz); Serial.print(" ");
+        
+        #endif
         delay(40);
 
 }
 
 /**
- * Function controls 1-8 i2c multiplexer
+ * Function controls 1-8 i2c multiplexer, selects proper SCL and SDA data lines
  */
-void tcaselect(uint8_t i){
-  if (i > 7) return;
+void tSelect(uint8_t i){
+  if (i > MAX_NUM_PPG) return;
  
   Wire.beginTransmission(TCAADDR);
   Wire.write(1 << i);
@@ -299,15 +194,26 @@ class ServerCallbacks: public BLEServerCallbacks {
 };
 
 /*
- * This function initializes our BLE Services and characteristic 
- * TODO: Shift all data into single characteristic potentially. Analyze performance later
+ * This function initializes our BLE Services and characteristics. Each channel is given its own characteristic
  */
 void initBLE(char serverName []){
   BLEDevice::init(serverName);
   ppgServer = BLEDevice::createServer();
   ppgServer->setCallbacks(new ServerCallbacks());
   battService = ppgServer->createService(BATT_SERV_UUID);
+
+  battChar = battService->createCharacteristic(
+                                             BATT_CHAR_UUID,
+                                             BLECharacteristic::PROPERTY_READ
+                                            );
   hrService = ppgServer->createService(HR_SERV_UUID);
+  hrChar = hrService->createCharacteristic(
+                                             HR_CHAR_UUID,
+                                             BLECharacteristic::PROPERTY_READ |
+                                             BLECharacteristic::PROPERTY_WRITE |
+                                             BLECharacteristic::PROPERTY_NOTIFY
+                                             );
+  hrChar->addDescriptor(new BLE2902());
   
   devinfoService = ppgServer->createService(DEVINFO_SERV_UUID);
   manufactChar = devinfoService->createCharacteristic(
@@ -339,86 +245,83 @@ void initBLE(char serverName []){
   redService = ppgServer->createService(RED_SERV_UUID,MAX_CHAR_HANDLE);
   irService = ppgServer->createService(IR_SERV_UUID,MAX_CHAR_HANDLE);
   greenService = ppgServer->createService(GREEN_SERV_UUID,MAX_CHAR_HANDLE);
-  red0Char = redService->createCharacteristic(
-                                         REDCHAR_0_CHAR_UUID,
-                                         BLECharacteristic::PROPERTY_READ |
-                                         BLECharacteristic::PROPERTY_WRITE |
-                                         BLECharacteristic::PROPERTY_NOTIFY
-                                       );
-  red0Char->addDescriptor(new BLE2902());
-  red1Char = redService->createCharacteristic(
-                                         REDCHAR_1_CHAR_UUID,
-                                         BLECharacteristic::PROPERTY_READ |
-                                         BLECharacteristic::PROPERTY_WRITE |
-                                         BLECharacteristic::PROPERTY_NOTIFY
-                                       );
-  red1Char->addDescriptor(new BLE2902());
-  red2Char = redService->createCharacteristic(
-                                         REDCHAR_2_CHAR_UUID,
-                                         BLECharacteristic::PROPERTY_READ |
-                                         BLECharacteristic::PROPERTY_WRITE |
-                                         BLECharacteristic::PROPERTY_NOTIFY
-                                       );
-  red2Char->addDescriptor(new BLE2902());
-  
-  ir0Char = irService->createCharacteristic(
-                                         IRCHAR_0_CHAR_UUID,
-                                         BLECharacteristic::PROPERTY_READ |
-                                         BLECharacteristic::PROPERTY_WRITE |
-                                         BLECharacteristic::PROPERTY_NOTIFY
-                                       );
-  ir0Char->addDescriptor(new BLE2902());
-  ir1Char = irService->createCharacteristic(
-                                         IRCHAR_1_CHAR_UUID,
-                                         BLECharacteristic::PROPERTY_READ |
-                                         BLECharacteristic::PROPERTY_WRITE |
-                                         BLECharacteristic::PROPERTY_NOTIFY
-                                       );
-  ir1Char->addDescriptor(new BLE2902());
-  ir2Char = irService->createCharacteristic(
-                                         IRCHAR_2_CHAR_UUID,
-                                         BLECharacteristic::PROPERTY_READ |
-                                         BLECharacteristic::PROPERTY_WRITE |
-                                         BLECharacteristic::PROPERTY_NOTIFY
-                                       );
-  ir2Char->addDescriptor(new BLE2902());        
 
-  green0Char = greenService->createCharacteristic(
-                                         GREENCHAR_0_CHAR_UUID,
+  for(int i=0; i< NUM_PPG; i++){
+    //local variables for UUID's needed per channel
+    char *rUUID, *iUUID, *gUUID;
+    
+    //select the correct UUIDs per PPG
+    switch(i){
+      case 0:
+        rUUID = REDCHAR_0_CHAR_UUID;
+        iUUID = IRCHAR_0_CHAR_UUID;
+        gUUID = GREENCHAR_0_CHAR_UUID;
+      break;
+      case 1:
+        rUUID = REDCHAR_1_CHAR_UUID;
+        iUUID = IRCHAR_1_CHAR_UUID;
+        gUUID = GREENCHAR_1_CHAR_UUID;
+      break;
+      case 2:
+        rUUID = REDCHAR_2_CHAR_UUID;
+        iUUID = IRCHAR_2_CHAR_UUID;
+        gUUID = GREENCHAR_2_CHAR_UUID;
+      break;
+      case 3:
+        rUUID = REDCHAR_3_CHAR_UUID;
+        iUUID = IRCHAR_3_CHAR_UUID;
+        gUUID = GREENCHAR_3_CHAR_UUID;
+      break;
+      case 4:
+        rUUID = REDCHAR_4_CHAR_UUID;
+        iUUID = IRCHAR_4_CHAR_UUID;
+        gUUID = GREENCHAR_4_CHAR_UUID;
+      break;
+      case 5:
+        rUUID = REDCHAR_5_CHAR_UUID;
+        iUUID = IRCHAR_5_CHAR_UUID;
+        gUUID = GREENCHAR_5_CHAR_UUID;
+      break;
+      case 6:
+        rUUID = REDCHAR_6_CHAR_UUID;
+        iUUID = IRCHAR_6_CHAR_UUID;
+        gUUID = GREENCHAR_6_CHAR_UUID;
+      break;
+      default:
+      //by default initialize 0 errror!?!
+        rUUID = REDCHAR_0_CHAR_UUID;
+        iUUID = IRCHAR_0_CHAR_UUID;
+        gUUID = GREENCHAR_0_CHAR_UUID;
+    }
+    //create characteristic with selected UUID with properties set, add descriptor for help
+    redChars[i] = redService->createCharacteristic(
+                                         rUUID,
                                          BLECharacteristic::PROPERTY_READ |
                                          BLECharacteristic::PROPERTY_WRITE |
                                          BLECharacteristic::PROPERTY_NOTIFY
-                                       );
-  green0Char->addDescriptor(new BLE2902());
-  green1Char = greenService->createCharacteristic(
-                                         GREENCHAR_1_CHAR_UUID,
+      );
+    redChars[i]->addDescriptor(new BLE2902());
+    irChars[i] = irService->createCharacteristic(
+                                         iUUID,
                                          BLECharacteristic::PROPERTY_READ |
                                          BLECharacteristic::PROPERTY_WRITE |
                                          BLECharacteristic::PROPERTY_NOTIFY
-                                       );
-  green1Char->addDescriptor(new BLE2902());
-  green2Char = greenService->createCharacteristic(
-                                         GREENCHAR_2_CHAR_UUID,
+      );
+    irChars[i]->addDescriptor(new BLE2902());
+    greenChars[i] = greenService->createCharacteristic(
+                                         gUUID,
                                          BLECharacteristic::PROPERTY_READ |
                                          BLECharacteristic::PROPERTY_WRITE |
                                          BLECharacteristic::PROPERTY_NOTIFY
-                                       );
-  green2Char->addDescriptor(new BLE2902());
+      );
+    greenChars[i]->addDescriptor(new BLE2902());  
+  }
 
-  battChar = battService->createCharacteristic(
-                                             BATT_CHAR_UUID,
-                                             BLECharacteristic::PROPERTY_READ
-                                            );
-  hrChar = hrService->createCharacteristic(
-                                             HR_CHAR_UUID,
-                                             BLECharacteristic::PROPERTY_READ |
-                                             BLECharacteristic::PROPERTY_WRITE |
-                                             BLECharacteristic::PROPERTY_NOTIFY
-                                             );
-  hrChar->addDescriptor(new BLE2902());   
-
+  //start BLE services
   redService->start();irService->start();greenService->start();
   battService->start(); hrService->start(); devinfoService->start();
+  
+  //advertise services and configure advertising settings
   pAdvertising = BLEDevice::getAdvertising();
   pAdvertising->addServiceUUID(RED_SERV_UUID);
   pAdvertising->addServiceUUID(IR_SERV_UUID);
