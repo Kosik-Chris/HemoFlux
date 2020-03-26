@@ -49,6 +49,7 @@
 #include "MAX30105.h"
 #include <I2Cdev.h>
 #include <MPU6050.h>
+#include "heartRate.h"
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
     #include "Wire.h"
 #endif
@@ -87,6 +88,14 @@ int SYSTEM_ID = 1;
 int16_t ax, ay, az; //accel 3 holder variables per dimension
 int16_t gx, gy, gz; //gyro 3 holder variables per dimension
 
+const byte RATE_SIZE = 4; //Increase this for more averaging. 4 is good.
+byte rates[RATE_SIZE]; //Array of heart rates
+byte rateSpot = 0;
+long lastBeat = 0; //Time at which the last beat occurred
+
+float beatsPerMinute;
+int beatAvg;
+
 void setup() {
   Serial.begin(115200);
   while(!Serial);
@@ -119,18 +128,20 @@ void setup() {
   
   //initialize MAX30105 with paramaters
   for(int i=0;i<NUM_PPG; i++){
+     tSelect(i);
      ppgCollection[i].setup(ledBrightness, sampleAverage, ledMode, sampleRate, pulseWidth, adcRange);
   }
 
   //disconnected, state machine set to advertise servies, should be default state
   if(conn_state == 1){
-    //initialize server);
+    //initialize server
    initBLE(serverName); 
   }
 
   //TODO: Lots of fine tune continual tune of imu should be done and tested
   //calibrate (PI tune) imu
   //offsets chosen based off of MPU_raw example. 0 offset updated by functions
+  tSelect(MAX_NUM_PPG);
   imu.setXAccelOffset(0); //-76 
   imu.setYAccelOffset(0); //-2359
   imu.setZAccelOffset(0); //1688
@@ -165,6 +176,7 @@ void loop() {
     #ifdef DEBUG
       Serial.println("\nReading sensors for first time...");
     #endif
+    tSelect(MAX_NUM_PPG);
     meansensors();
     dev_state++;
     delay(200);
@@ -195,15 +207,43 @@ void loop() {
     #endif
     for(int i=0; i<NUM_PPG; i++){
           tSelect(i);
-          ppgCollection[i].check(); //Check the sensor, read up to 3 samples //i2c burst read
+          ppgCollection[i].check(); //Check the sensor, unsafe op
           while (ppgCollection[i].available()){
-            uint32_t data_r = ppgCollection[i].getFIFORed();
+            uint32_t data_r = ppgCollection[i].getFIFORed(); //getFIFORed() => returns tail, getRED => returns head
             uint32_t data_i = ppgCollection[i].getFIFOIR();
             uint32_t data_g = ppgCollection[i].getFIFOGreen();
+
+              if (checkForBeat(data_i) == true)
+                {
+                  //We sensed a beat!
+                  long delta = millis() - lastBeat;
+                  lastBeat = millis();
+              
+                  beatsPerMinute = 60 / (delta / 1000.0);
+              
+                  if (beatsPerMinute < 255 && beatsPerMinute > 20)
+                  {
+                    rates[rateSpot++] = (byte)beatsPerMinute; //Store this reading in the array
+                    rateSpot %= RATE_SIZE; //Wrap variable
+              
+                    //Take average of readings
+                    beatAvg = 0;
+                    for (byte x = 0 ; x < RATE_SIZE ; x++)
+                      beatAvg += rates[x];
+                    beatAvg /= RATE_SIZE;
+                  }
+                }
+
+              Serial.print("IR =");
+              Serial.print(data_i);
+              Serial.print(", BPM=");
+              Serial.print(beatsPerMinute);
+              Serial.print(", Avg BPM=");
+              Serial.print(beatAvg);
             
-            redChars[i]->setValue((uint8_t*) &data_r,4);   
-            irChars[i]->setValue((uint8_t*) &data_i,4);    
-            greenChars[i]->setValue((uint8_t*) &data_g,4); 
+            redChars[i]->setValue((uint32_t&)data_r);   
+            irChars[i]->setValue((uint32_t&)data_i);    
+            greenChars[i]->setValue((uint32_t&)data_g); 
             redChars[i]->notify(); 
             irChars[i]->notify();
             greenChars[i]->notify();
@@ -213,12 +253,12 @@ void loop() {
         tSelect(MAX_NUM_PPG);
         double temp = imu.getTemperature();
         imu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-        axChar->setValue((uint8_t*) &ax,2);
-        ayChar->setValue((uint8_t*) &ay,2);
-        azChar->setValue((uint8_t*) &az,2);
-        gxChar->setValue((uint8_t*) &gx,2);
-        gyChar->setValue((uint8_t*) &gy,2);
-        gzChar->setValue((uint8_t*) &gz,2);
+        axChar->setValue((uint16_t&) ax);
+        ayChar->setValue((uint16_t&) ay);
+        azChar->setValue((uint16_t&) az);
+        gxChar->setValue((uint16_t&) gx);
+        gyChar->setValue((uint16_t&) gy);
+        gzChar->setValue((uint16_t&) gz);
         axChar->notify(); ayChar->notify(); azChar->notify();
         gxChar->notify(); gyChar->notify(); gzChar->notify();
 
@@ -242,10 +282,9 @@ void loop() {
         Serial.print(gy); Serial.print("\t");
         Serial.println(gz);
     #endif
-        delay(40);
+        delay(2);
   }
  
-
 }
 
 /**
@@ -274,40 +313,43 @@ void initBLE(char serverName []){
                                              BATT_CHAR_UUID,
                                              BLECharacteristic::PROPERTY_READ
                                             );
-  Serial.println("settings up dimensions");
   dimensionsService = ppgServer->createService(DIMENSIONS_SERV_UUID,MAX_CHAR_HANDLE);
-  Serial.println("dimensions setup");
   axChar = dimensionsService->createCharacteristic(
                                              AX_CHAR_UUID,
                                              BLECharacteristic::PROPERTY_READ |
                                              BLECharacteristic::PROPERTY_NOTIFY
                                              );
+  axChar->addDescriptor(new BLE2902());
   ayChar = dimensionsService->createCharacteristic(
                                              AY_CHAR_UUID,
                                              BLECharacteristic::PROPERTY_READ |
                                              BLECharacteristic::PROPERTY_NOTIFY
                                              );
+  ayChar->addDescriptor(new BLE2902());                                           
   azChar = dimensionsService->createCharacteristic(
                                              AZ_CHAR_UUID,
                                              BLECharacteristic::PROPERTY_READ |
                                              BLECharacteristic::PROPERTY_NOTIFY
-                                             );   
+                                             );
+  azChar->addDescriptor(new BLE2902());                                              
   gxChar = dimensionsService->createCharacteristic(
                                              GX_CHAR_UUID,
                                              BLECharacteristic::PROPERTY_READ |
                                              BLECharacteristic::PROPERTY_NOTIFY
                                              );
+  gxChar->addDescriptor(new BLE2902());                                           
   gyChar = dimensionsService->createCharacteristic(
                                              GY_CHAR_UUID,
                                              BLECharacteristic::PROPERTY_READ |
                                              BLECharacteristic::PROPERTY_NOTIFY
-                                             ); 
+                                             );
+  gyChar->addDescriptor(new BLE2902());                                            
   gzChar = dimensionsService->createCharacteristic(
                                              GZ_CHAR_UUID,
                                              BLECharacteristic::PROPERTY_READ |
                                              BLECharacteristic::PROPERTY_NOTIFY
                                              );                                                                                                                                                                                    
-                                            
+  gzChar->addDescriptor(new BLE2902());                                          
   hrService = ppgServer->createService(HR_SERV_UUID);
   hrChar = hrService->createCharacteristic(
                                              HR_CHAR_UUID,
@@ -400,18 +442,21 @@ void initBLE(char serverName []){
                                          BLECharacteristic::PROPERTY_WRITE |
                                          BLECharacteristic::PROPERTY_NOTIFY
       );
+    redChars[i]->addDescriptor(new BLE2902());  
     irChars[i] = channelService->createCharacteristic(
                                          iUUID,
                                          BLECharacteristic::PROPERTY_READ |
                                          BLECharacteristic::PROPERTY_WRITE |
                                          BLECharacteristic::PROPERTY_NOTIFY
       );
+    irChars[i]->addDescriptor(new BLE2902());  
     greenChars[i] = channelService->createCharacteristic(
                                          gUUID,
                                          BLECharacteristic::PROPERTY_READ |
                                          BLECharacteristic::PROPERTY_WRITE |
                                          BLECharacteristic::PROPERTY_NOTIFY
-      ); 
+      );
+    greenChars[i]->addDescriptor(new BLE2902());   
   }
 
   //start BLE services

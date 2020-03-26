@@ -1,5 +1,6 @@
 #define DEBUG
-#define OUTPUT_READABLE_ACCELGYRO
+//#define OUTPUT_READABLE_ACCELGYRO
+#define PPG_DEBUG
 #define MAX_NUM_PPG 7 //8 -1 (i2c gyro/accel)
 #define NUM_PPG 1
 #define MAX_CHAR_HANDLE 25 //max number chars per service
@@ -70,8 +71,8 @@
 #define GZ_CHAR_UUID "852b8b8d-3a64-4733-996b-b0f55452f592"
 
 //IMU calibration
-#define imu_buffersize 20     //Amount of readings used to average, make it higher to get more precision but sketch will be slower  (default:1000)
-#define acel_deadzone 20          //Acelerometer error allowed, make it lower to get more precision, but sketch may not converge  (default:8)
+#define imu_buffersize 1000     //Amount of readings used to average, make it higher to get more precision but sketch will be slower  (default:1000)
+#define acel_deadzone 8          //Acelerometer error allowed, make it lower to get more precision, but sketch may not converge  (default:8)
 #define giro_deadzone 1
 
 //typedef struct _dimensions {
