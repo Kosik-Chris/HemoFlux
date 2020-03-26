@@ -1,5 +1,5 @@
-function [n_g_ratio_average,n_i_ratio_average,pn_heart_rate] = maxim_heart_rate_and_oxygen_saturation(pun_ir_buffer, n_ir_buffer_length,pun_red_buffer,pun_green_buffer)
-% function [pn_spo2,pn_heart_rate] = maxim_heart_rate_and_oxygen_saturation(pun_ir_buffer, n_ir_buffer_length,pun_red_buffer,pun_green_buffer)
+% function [n_g_ratio_average,n_i_ratio_average,pn_heart_rate] = maxim_heart_rate_and_oxygen_saturation(pun_ir_buffer, n_ir_buffer_length,pun_red_buffer,pun_green_buffer)
+function [pn_spo2,pn_heart_rate] = maxim_heart_rate_and_oxygen_saturation(pun_ir_buffer, n_ir_buffer_length,pun_red_buffer,pun_green_buffer)
 
 %{
     * \brief        Calculate the heart rate and SpO2 level
@@ -141,7 +141,7 @@ function [n_g_ratio_average,n_i_ratio_average,pn_heart_rate] = maxim_heart_rate_
     
     if ( n_i_ratio_average>.02 && n_i_ratio_average <1.84)
 %         pn_spo2 = -45.060*n_g_ratio_average*n_g_ratio_average + 30.354*n_g_ratio_average + 94.845 ;
-        pn_spo2 = -45.060*n_i_ratio_average*n_i_ratio_average + 30.354*n_i_ratio_average + 94.845 ;
+        pn_spo2 = -62.4*n_i_ratio_average + 124.7 ;
         pch_spo2_valid  = 1;
     
     else

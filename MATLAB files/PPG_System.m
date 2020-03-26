@@ -63,11 +63,10 @@ function res = collectData(s, dats)
       timBuff = [timBuff(2:end) freq];
       mean(timBuff);
       if mod(j,25) == 0 && j > buffSize
-          [RG,RI,hr] = maxim_heart_rate_and_oxygen_saturation(PPGBuff(:,1),size(PPGBuff,1),PPGBuff(:,2),PPGBuff(:,3));
-          IBuff = [IBuff(2:end) RI];
-          GBuff = [GBuff(2:end) RG];
-          hr
-          spo2cnt = spo2cnt + 1
+          [spo2, hr] = maxim_heart_rate_and_oxygen_saturation(PPGBuff(:,1),size(PPGBuff,1),PPGBuff(:,2),PPGBuff(:,3))
+%           IBuff = [IBuff(2:end) RI];
+%           GBuff = [GBuff(2:end) RG];
+%           spo2cnt = spo2cnt + 1
       end
       
 
