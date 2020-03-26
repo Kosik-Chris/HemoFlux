@@ -144,8 +144,8 @@ class StockChartScreen extends React.Component {
         this.xMin = fromIndex;
         this.xMax = toIndex;
 
-        console.log('load data from ' + from + ' to ' + to);
-        console.log('fromIndex ' + fromIndex + ' toIndex ' + toIndex);
+        // console.log('load data from ' + from + ' to ' + to);
+        // console.log('fromIndex ' + fromIndex + ' toIndex ' + toIndex);
         resolve(
           Array.from(new Array(parseInt(toIndex - fromIndex)), (val, index) => {
             let x = fromIndex + index;

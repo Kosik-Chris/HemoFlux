@@ -30,6 +30,8 @@ import Scatter from '../components/charts/Scatter';
 import Stock from '../components/charts/Stock';
 import Connect from '../scenes/Connect';
 import DeviceInfoScreen from '../components/device/deviceInfo';
+import DataStream from '../services/ble/stream/DataStream';
+
 
 import {
   getAvailableLocationProviders,
@@ -130,6 +132,10 @@ class HomeScene extends Component {
             title="DeviceInfo"
             onPress={() => this.props.navigation.navigate('DeviceInfoScreen')}
           />
+          <Button
+            title="DataStream"
+            onPress={() => this.props.navigation.navigate('DataStream')}
+          />
           <Sinewave style={{}} />
           <Stock />
         </View>
@@ -150,6 +156,7 @@ const AppNavigator = createStackNavigator(
     Stock: Stock,
     Connect: Connect,
     DeviceInfoScreen: DeviceInfoScreen,
+    DataStream: DataStream,
   },
   {
     initialRouteName: 'Home',
