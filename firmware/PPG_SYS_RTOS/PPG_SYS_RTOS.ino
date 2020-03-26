@@ -41,9 +41,9 @@
 #include <BLEServer.h>
 #include <BLE2902.h>
 #include "I2Cdev.h"
-#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
-    #include "Wire.h"
-#endif
+//#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
+//    #include "Wire.h"
+//#endif
 #include "MAX30105.h"
 
 #define TCAADDR 0x70
