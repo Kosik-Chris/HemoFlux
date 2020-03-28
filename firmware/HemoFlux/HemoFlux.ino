@@ -22,7 +22,8 @@
  *  0: Read first 100 imu values and discard 
  *  1: Calculate initial offsets to calibrate IMU
  *  2: Final calibration of imu sensors, final offsets attached
- *  3: IMU ready
+ *  3: IMU initialized and ready for data xfer
+ *  9: device failed to initialize. Skip imu config
  *  
  *  4: Battery connected only
  *  5: USB connected only
@@ -124,8 +125,16 @@ void setup() {
   tSelect(MAX_NUM_PPG);
   imu.initialize();
   // verify connection
-    Serial.println("Testing device connections...");
-    Serial.println(imu.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
+  #ifdef DEBUG
+    Serial.println("Testing IMU connection");
+    //Serial.println(imu.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
+  #endif
+    if(!imu.testConnection()){
+      #ifdef DEBUG
+      Serial.println("IMU connection failed. Test wiring (temp debug)..");
+      #endif
+      dev_state = 9;
+    }
   
   //initialize MAX30105 with paramaters
   for(int i=0;i<NUM_PPG; i++){
@@ -142,13 +151,15 @@ void setup() {
   //TODO: Lots of fine tune continual tune of imu should be done and tested
   //calibrate (PI tune) imu
   //offsets chosen based off of MPU_raw example. 0 offset updated by functions
-  tSelect(MAX_NUM_PPG);
-  imu.setXAccelOffset(0); //-76 
-  imu.setYAccelOffset(0); //-2359
-  imu.setZAccelOffset(0); //1688
-  imu.setXGyroOffset(0); //220
-  imu.setYGyroOffset(0); //76
-  imu.setZGyroOffset(0); //-85
+  if(dev_state != 9){
+    tSelect(MAX_NUM_PPG);
+    imu.setXAccelOffset(0); //-76 
+    imu.setYAccelOffset(0); //-2359
+    imu.setZAccelOffset(0); //1688
+    imu.setXGyroOffset(0); //220
+    imu.setYGyroOffset(0); //76
+    imu.setZGyroOffset(0); //-85 
+  }
 }
 
 /**
@@ -203,6 +214,7 @@ void loop() {
   if(conn_state == 2 && dev_state >= 3){
   //iterate through PPG, check if available, dequeue FIFO, set BLE char value, notify BLE char, advance FIFO tail pointer
   //BLE connected and sensors have finished calibration
+  //handles if imu present or not
     #ifdef DEBUG
       long startTime = micros();
     #endif
@@ -251,17 +263,19 @@ void loop() {
             ppgCollection[i].nextSample(); //We're finished with this sample so move to next sample
           }
        }
-        tSelect(MAX_NUM_PPG);
-        double temp = imu.getTemperature();
-        imu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-        axChar->setValue((uint16_t&) ax);
-        ayChar->setValue((uint16_t&) ay);
-        azChar->setValue((uint16_t&) az);
-        gxChar->setValue((uint16_t&) gx);
-        gyChar->setValue((uint16_t&) gy);
-        gzChar->setValue((uint16_t&) gz);
-        axChar->notify(); ayChar->notify(); azChar->notify();
-        gxChar->notify(); gyChar->notify(); gzChar->notify();
+       if(dev_state != 9){
+          tSelect(MAX_NUM_PPG);
+          double temp = imu.getTemperature();
+          imu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+          axChar->setValue((uint16_t&) ax);
+          ayChar->setValue((uint16_t&) ay);
+          azChar->setValue((uint16_t&) az);
+          gxChar->setValue((uint16_t&) gx);
+          gyChar->setValue((uint16_t&) gy);
+          gzChar->setValue((uint16_t&) gz);
+          axChar->notify(); ayChar->notify(); azChar->notify();
+          gxChar->notify(); gyChar->notify(); gzChar->notify();
+       }
 
         BATTLVL = analogRead(BATTLVLPIN);
         battChar->setValue(BATTLVL);
@@ -275,13 +289,15 @@ void loop() {
         #endif
     #ifdef OUTPUT_READABLE_ACCELGYRO
         // display tab-separated accel/gyro x/y/z values
+     if(dev_state != 9){
         Serial.print("a/g:\t");
         Serial.print(ax); Serial.print("\t");
         Serial.print(ay); Serial.print("\t");
         Serial.print(az); Serial.print("\t");
         Serial.print(gx); Serial.print("\t");
         Serial.print(gy); Serial.print("\t");
-        Serial.println(gz);
+        Serial.println(gz);   
+     }
     #endif
         delay(2);
   }
