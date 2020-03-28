@@ -1,7 +1,7 @@
 /*
-  PPG_SYS
+  HemoFlux
   By: CASSS, Christopher J. Kosik & Jose I. Rodriguez-Labra
-  Date: February 20th, 2020
+  Date: March 26th, 2020
   Version: 0.0.3
 
   Based on Neil Kolban example for IDF.
@@ -114,7 +114,8 @@ void setup() {
       //TODO: error detect lines on multiplex (graceful hardware error handling)
       //we need to attempt to see if there are other possible locations we can attach this sensor object
        #ifdef DEBUG
-        Serial.print("FATAL ERROR at TCASE. Check wiring");
+        Serial.print("FATAL ERROR at TCASE. Check wiring. Error on: ");
+        Serial.println(i);
        #endif 
       while(1);
     }
