@@ -1,6 +1,4 @@
 /**
- * Sample React Native App
- * https://github.com/facebook/react-native
  *
  * @format
  * @flow
@@ -15,7 +13,8 @@ import {
   Text,
   Button,
   StatusBar,
-  Platform
+  Platform,
+  Dimensions
 } from 'react-native';
 import {createAppContainer} from 'react-navigation';
 import {createStackNavigator} from 'react-navigation-stack';
@@ -31,7 +30,7 @@ import Scatter from '../components/charts/Scatter';
 import Stock from '../components/charts/Stock';
 import Connect from '../scenes/Connect';
 import DeviceInfoScreen from '../components/device/deviceInfo';
-import DataStream from '../services/ble/stream/DataStream';
+import RawDataStream from '../services/ble/stream/RawDataStream';
 
 
 import {
@@ -50,14 +49,21 @@ import {
   useBatteryLevel,
 } from 'react-native-device-info';
 import {check, request, PERMISSIONS, RESULTS} from 'react-native-permissions';
+import { BleManager, ScanMode, Service } from 'react-native-ble-plx';
+import BLEconfig from '../services/files/bleConfig.json';
 
+//const manager = new BleManager();
+//let ScanOptions = { scanMode: ScanMode.LowLatency };
+//let deviceList = new Map(); //holder for all devi
 
 class HomeScene extends Component {
   state = {
     isModalVisible: false,
+    orientation: '',
   };
 
   componentDidMount() {
+    //manager.enable();
     request(
       Platform.select({
         android: PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
@@ -65,6 +71,17 @@ class HomeScene extends Component {
       }),
     );
   }
+
+  getOrientation = () => {
+    if (this.refs.rootView) {
+      if (Dimensions.get('window').width < Dimensions.get('window').height) {
+        this.setState({ orientation: 'portrait' });
+      } else {
+        this.setState({ orientation: 'landscape' });
+      }
+    }
+  };
+
 
 
   toggleModal = () => {
@@ -143,11 +160,11 @@ class HomeScene extends Component {
             title="DeviceInfo"
             onPress={() => this.props.navigation.navigate('DeviceInfoScreen')}
           />
-          <Button
-            title="DataStream"
-            onPress={() => this.props.navigation.navigate('DataStream')}
-          />
-          <Sinewave style={{}} />
+          {/* <Button
+            title="RawDataStream"
+            onPress={() => this.props.navigation.navigate('RawDataStream')}
+          /> */}
+          <RawDataStream style={{}} />
           <Stock />
         </View>
       </View>
@@ -167,7 +184,7 @@ const AppNavigator = createStackNavigator(
     Stock: Stock,
     Connect: Connect,
     DeviceInfoScreen: DeviceInfoScreen,
-    DataStream: DataStream,
+    RawDataStream: RawDataStream,
   },
   {
     initialRouteName: 'Home',
