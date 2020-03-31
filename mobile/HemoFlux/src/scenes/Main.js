@@ -15,6 +15,7 @@ import {
   Text,
   Button,
   StatusBar,
+  Platform
 } from 'react-native';
 import {createAppContainer} from 'react-navigation';
 import {createStackNavigator} from 'react-navigation-stack';
@@ -48,13 +49,23 @@ import {
   isLocationEnabled,
   useBatteryLevel,
 } from 'react-native-device-info';
+import {check, request, PERMISSIONS, RESULTS} from 'react-native-permissions';
+
 
 class HomeScene extends Component {
   state = {
     isModalVisible: false,
   };
 
-  componentDidMount() {}
+  componentDidMount() {
+    request(
+      Platform.select({
+        android: PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
+        ios: PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
+      }),
+    );
+  }
+
 
   toggleModal = () => {
     this.setState({isModalVisible: !this.state.isModalVisible});

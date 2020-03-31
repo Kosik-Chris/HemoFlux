@@ -299,7 +299,7 @@ void loop() {
         Serial.println(gz);   
      }
     #endif
-        delay(2);
+        delay(30);
   }
  
 }

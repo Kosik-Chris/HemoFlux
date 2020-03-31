@@ -2,7 +2,7 @@
 //#define OUTPUT_READABLE_ACCELGYRO
 #define PPG_DEBUG
 #define MAX_NUM_PPG 7 //8 -1 (i2c gyro/accel)
-#define NUM_PPG 2
+#define NUM_PPG 1
 #define MAX_CHAR_HANDLE 25 //max number chars per service
 #define HARDWARE_VERSION "V0.0.2"
 #define FIRMWARE_VERSION "V0.0.2"
