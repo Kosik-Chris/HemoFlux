@@ -16,6 +16,7 @@
     "moment": "^2.24.0",
     "react": "16.9.0",
     "react-native": "0.61.5",
+    "react-native-android-location-enabler": "^1.2.1",
     "react-native-ble-plx": "^1.1.1",
     "react-native-charts-wrapper": "^0.5.7",
     "react-native-device-info": "^5.5.3",

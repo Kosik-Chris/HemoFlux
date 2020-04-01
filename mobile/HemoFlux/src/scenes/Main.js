@@ -19,6 +19,7 @@ import {
 import {createAppContainer} from 'react-navigation';
 import {createStackNavigator} from 'react-navigation-stack';
 import Modal from 'react-native-modal';
+import RNAndroidLocationEnabler from "react-native-android-location-enabler";
 import DeviceInfo from 'react-native-device-info';
 
 import Sinewave from '../components/charts/Sinewave';
@@ -70,6 +71,12 @@ class HomeScene extends Component {
         ios: PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
       }),
     );
+    Platform.select({
+      android:  RNAndroidLocationEnabler.promptForEnableLocationIfNeeded({
+                interval: 10000,
+                fastInterval: 5000,
+                  }).then(data => {})
+    })
   }
 
   getOrientation = () => {
