@@ -252,7 +252,7 @@ void loop() {
               Serial.print(", BPM=");
               Serial.print(beatsPerMinute);
               Serial.print(", Avg BPM=");
-              Serial.print(beatAvg);
+              Serial.println(beatAvg);
             
             redChars[i]->setValue((uint32_t&)data_r);   
             irChars[i]->setValue((uint32_t&)data_i);    
@@ -299,7 +299,7 @@ void loop() {
         Serial.println(gz);   
      }
     #endif
-        delay(30);
+        delay(TXDELAY);
   }
  
 }
