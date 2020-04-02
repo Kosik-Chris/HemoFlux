@@ -4,14 +4,13 @@
  * 
  * This component renders all configured channels raw data in line graph form.
  * Component receives the device object from controlling middleware and subscribes to configured chars
- * 
+ * Component is not navigated to.
  */
 
-import React, {Component, PureComponent} from 'react';
+import React, {PureComponent} from 'react';
 import {StyleSheet, processColor, View, Text, Platform} from 'react-native';
 
 import {LineChart} from 'react-native-charts-wrapper';
-import { BleManager, ScanMode, Service } from 'react-native-ble-plx';
 import { getDecFrom64 } from '../utility/DecFrom64';
 import BLEconfig from '../../files/bleConfig';
 
@@ -66,7 +65,6 @@ let timeIndex = 0;
  * Receives Device (connected state enforced by parent) object as a prop to manipulate
  */
 export default class RawDataStream extends PureComponent {
-  static displayName = 'Raw Channel Data';
   
   constructor(props) {
     super(props);

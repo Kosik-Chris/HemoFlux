@@ -16,8 +16,8 @@ import {
   Platform,
   Dimensions
 } from 'react-native';
-import {createAppContainer} from 'react-navigation';
-import {createStackNavigator} from 'react-navigation-stack';
+import {createAppContainer, StackActions} from 'react-navigation';
+import { createStackNavigator } from 'react-navigation-stack';
 import Modal from 'react-native-modal';
 import RNAndroidLocationEnabler from "react-native-android-location-enabler";
 import DeviceInfo from 'react-native-device-info';
@@ -58,7 +58,18 @@ let BleManagerOptions = {restoreStateIdentifier: "hello"}; //TODO: work on backg
 
 const manager = new BleManager();
 
-class HomeScene extends PureComponent {
+class Main extends PureComponent {
+
+  static navigationOptions = {
+    title: 'Main',
+    headerStyle: {
+      backgroundColor: '#f4511e',
+    },
+    headerTintColor: '#fff',
+    headerTitleStyle: {
+      fontWeight: 'bold',
+    },
+  }
 
   constructor(props){
     super(props);
@@ -251,13 +262,8 @@ class HomeScene extends PureComponent {
               title="DeviceInfo"
               onPress={() => this.props.navigation.navigate('DeviceInfoScreen')}
             />
-            <Button
-              title="RawDataStream"
-              onPress={() => this.props.navigation.navigate('RawDataStream')}
-            />
-            {/* <RawDataStream device={this.state.device} style={{}} /> */}
           </View>
-        </View>
+        </View> 
       );
     }
     else{
@@ -332,13 +338,9 @@ class HomeScene extends PureComponent {
               title="DeviceInfo"
               onPress={() => this.props.navigation.navigate('DeviceInfoScreen')}
             />
-            <Button
-              title="RawDataStream"
-              onPress={() => this.props.navigation.navigate('RawDataStream')}
-            />
             <RawDataStream device={this.state.device} style={{}} />
           </View>
-        </View>
+        </View> 
       );
     }
   }
@@ -394,7 +396,7 @@ const styles = StyleSheet.create({
 
 const AppNavigator = createStackNavigator(
   {
-    Home: HomeScene,
+    Main: Main,
     Sinewave: Sinewave,
     Piechart: Piechart,
     Bubble: Bubble,
@@ -406,7 +408,7 @@ const AppNavigator = createStackNavigator(
     RawDataStream: RawDataStream,
   },
   {
-    initialRouteName: 'Home',
+    initialRouteName: 'Main',
   },
 );
 
