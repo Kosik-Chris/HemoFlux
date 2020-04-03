@@ -18,18 +18,14 @@ import {
 } from 'react-native';
 import {createAppContainer, StackActions} from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
+import { createBottomTabNavigator } from 'react-navigation-tabs';
 import Modal from 'react-native-modal';
 import RNAndroidLocationEnabler from "react-native-android-location-enabler";
 import DeviceInfo from 'react-native-device-info';
 
-import Sinewave from '../components/charts/Sinewave';
-import Piechart from '../components/charts/Piechart';
-import Bubble from '../components/charts/Bubble';
-import Linkage from '../components/charts/Linkage';
-import Radar from '../components/charts/Radar';
-import Scatter from '../components/charts/Scatter';
-import Stock from '../components/charts/Stock';
 import DeviceInfoScreen from '../components/device/deviceInfo';
+import Insights from '../scenes/Insights';
+import ModelView from '../scenes/ModelView';
 import RawDataStream from '../services/ble/stream/RawDataStream';
 
 
@@ -183,7 +179,6 @@ class Main extends PureComponent {
   }
 
 
-
   toggleModal = () => {
     this.setState({isModalVisible: !this.state.isModalVisible});
   };
@@ -200,60 +195,6 @@ class Main extends PureComponent {
             alignItems: 'stretch',
           }}>
           <View style={{flex: 1}}>
-            <Button title="Select Chart type" onPress={this.toggleModal} />
-            <Modal isVisible={this.state.isModalVisible}>
-              <View style={{flex: 1}}>
-                <Button
-                  title="Sinewave"
-                  onPress={() => {
-                    this.props.navigation.navigate('Sinewave');
-                    this.toggleModal();
-                  }}
-                />
-                <Button
-                  title="Piechart"
-                  onPress={() => {
-                    this.props.navigation.navigate('Piechart');
-                    this.toggleModal();
-                  }}
-                />
-                <Button
-                  title="Bubble"
-                  onPress={() => {
-                    this.props.navigation.navigate('Bubble');
-                    this.toggleModal();
-                  }}
-                />
-                <Button
-                  title="Linkage"
-                  onPress={() => {
-                    this.props.navigation.navigate('Linkage');
-                    this.toggleModal();
-                  }}
-                />
-                <Button
-                  title="Radar"
-                  onPress={() => {
-                    this.props.navigation.navigate('Radar');
-                    this.toggleModal();
-                  }}
-                />
-                <Button
-                  title="Scatter"
-                  onPress={() => {
-                    this.props.navigation.navigate('Scatter');
-                    this.toggleModal();
-                  }}
-                />
-                <Button
-                  title="Stock"
-                  onPress={() => {
-                    this.props.navigation.navigate('Stock');
-                    this.toggleModal();
-                  }}
-                />
-              </View>
-            </Modal>
             <Button
               title="Scan & Connect"
               onPress={this.scanDevices}
@@ -276,60 +217,6 @@ class Main extends PureComponent {
             alignItems: 'stretch',
           }}>
           <View style={{flex: 1}}>
-            <Button title="Select Chart type" onPress={this.toggleModal} />
-            <Modal isVisible={this.state.isModalVisible}>
-              <View style={{flex: 1}}>
-                <Button
-                  title="Sinewave"
-                  onPress={() => {
-                    this.props.navigation.navigate('Sinewave');
-                    this.toggleModal();
-                  }}
-                />
-                <Button
-                  title="Piechart"
-                  onPress={() => {
-                    this.props.navigation.navigate('Piechart');
-                    this.toggleModal();
-                  }}
-                />
-                <Button
-                  title="Bubble"
-                  onPress={() => {
-                    this.props.navigation.navigate('Bubble');
-                    this.toggleModal();
-                  }}
-                />
-                <Button
-                  title="Linkage"
-                  onPress={() => {
-                    this.props.navigation.navigate('Linkage');
-                    this.toggleModal();
-                  }}
-                />
-                <Button
-                  title="Radar"
-                  onPress={() => {
-                    this.props.navigation.navigate('Radar');
-                    this.toggleModal();
-                  }}
-                />
-                <Button
-                  title="Scatter"
-                  onPress={() => {
-                    this.props.navigation.navigate('Scatter');
-                    this.toggleModal();
-                  }}
-                />
-                <Button
-                  title="Stock"
-                  onPress={() => {
-                    this.props.navigation.navigate('Stock');
-                    this.toggleModal();
-                  }}
-                />
-              </View>
-            </Modal>
             <Button
               title="Scan & Connect"
               onPress={this.scanDevices}
@@ -394,22 +281,18 @@ const styles = StyleSheet.create({
   },
 });
 
-const AppNavigator = createStackNavigator(
+const RootTabNav = createBottomTabNavigator(
   {
     Main: Main,
-    Sinewave: Sinewave,
-    Piechart: Piechart,
-    Bubble: Bubble,
-    Linkage: Linkage,
-    Radar: Radar,
-    Scatter: Scatter,
-    Stock: Stock,
     DeviceInfoScreen: DeviceInfoScreen,
-    RawDataStream: RawDataStream,
+    Insights: Insights,
+    ModelView: ModelView,
   },
   {
     initialRouteName: 'Main',
   },
 );
 
-export default createAppContainer(AppNavigator);
+const AppContainer =  createAppContainer(RootTabNav);
+
+export default AppContainer;

@@ -41,7 +41,6 @@ target 'HemoFlux' do
 
   use_native_modules!
 
-  pod 'react-native-ble-plx', :path => '../node_modules/react-native-ble-plx'
   pod 'react-native-ble-plx-swift', :path => '../node_modules/react-native-ble-plx'
 end
 
