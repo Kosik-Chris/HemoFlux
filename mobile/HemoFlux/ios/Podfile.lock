@@ -1,5 +1,8 @@
 PODS:
   - boost-for-react-native (1.63.0)
+  - Charts (3.3.0):
+    - Charts/Core (= 3.3.0)
+  - Charts/Core (3.3.0)
   - DoubleConversion (1.1.6)
   - FBLazyVector (0.61.5)
   - FBReactNativeSpec (0.61.5):
@@ -223,6 +226,10 @@ PODS:
     - React-cxxreact (= 0.61.5)
     - React-jsi (= 0.61.5)
     - ReactCommon/jscallinvoker (= 0.61.5)
+  - RNCharts (0.5.7):
+    - Charts (= 3.3.0)
+    - React
+    - SwiftyJSON (= 5.0)
   - RNCMaskedView (0.1.6):
     - React
   - RNDeviceInfo (5.5.3):
@@ -233,6 +240,7 @@ PODS:
     - React
   - RNScreens (2.0.0-beta.11):
     - React
+  - SwiftyJSON (5.0.0)
   - Yoga (1.14.0)
 
 DEPENDENCIES:
@@ -266,6 +274,7 @@ DEPENDENCIES:
   - React-RCTVibration (from `../node_modules/react-native/Libraries/Vibration`)
   - ReactCommon/jscallinvoker (from `../node_modules/react-native/ReactCommon`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
+  - RNCharts (from `../node_modules/react-native-charts-wrapper`)
   - "RNCMaskedView (from `../node_modules/@react-native-community/masked-view`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
@@ -276,6 +285,8 @@ DEPENDENCIES:
 SPEC REPOS:
   trunk:
     - boost-for-react-native
+    - Charts
+    - SwiftyJSON
 
 EXTERNAL SOURCES:
   DoubleConversion:
@@ -332,6 +343,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/Libraries/Vibration"
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
+  RNCharts:
+    :path: "../node_modules/react-native-charts-wrapper"
   RNCMaskedView:
     :path: "../node_modules/@react-native-community/masked-view"
   RNDeviceInfo:
@@ -347,6 +360,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
+  Charts: e0dd4cd8f257bccf98407b58183ddca8e8d5b578
   DoubleConversion: 5805e889d232975c086db112ece9ed034df7a0b2
   FBLazyVector: aaeaf388755e4f29cd74acbc9e3b8da6d807c37f
   FBReactNativeSpec: 118d0d177724c2d67f08a59136eb29ef5943ec75
@@ -374,13 +388,15 @@ SPEC CHECKSUMS:
   React-RCTText: 9ccc88273e9a3aacff5094d2175a605efa854dbe
   React-RCTVibration: a49a1f42bf8f5acf1c3e297097517c6b3af377ad
   ReactCommon: 198c7c8d3591f975e5431bec1b0b3b581aa1c5dd
+  RNCharts: e9461314e1930516d6c986d1be00440aeb26d5f2
   RNCMaskedView: e5b99bc191945f157adeede68da9d424462de177
   RNDeviceInfo: 67607dfe9cfbed105838144c40187a8392aa404d
   RNGestureHandler: dde546180bf24af0b5f737c8ad04b6f3fa51609a
   RNReanimated: 031fe8d9ea93c2bd689a40f05320ef9d96f74d7f
   RNScreens: 4a23608446fee80aca2b5a3215ee714ef87b281b
+  SwiftyJSON: 36413e04c44ee145039d332b4f4e2d3e8d6c4db7
   Yoga: f2a7cd4280bfe2cca5a7aed98ba0eb3d1310f18b
 
-PODFILE CHECKSUM: 5eb7e185deb57014aa69de7186329c891b1927be
+PODFILE CHECKSUM: 44d550ad80953883039c8f1ffdce21002e18c581
 
 COCOAPODS: 1.9.0
