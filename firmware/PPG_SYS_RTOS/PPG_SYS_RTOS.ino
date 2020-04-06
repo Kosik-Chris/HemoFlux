@@ -26,7 +26,7 @@
  */
  //TODO: update state ctrl
  uint8_t state = 1; // 8 bit state control by default set to 0 for sleep, 1 for BLE setup and more SEE STATE DIAGRAM
-//#define DEBUG
+#define DEBUG
 //#define SUCKIT
 #define MAX_NUM_PPG 7 //8 -1 (i2c gyro/accel)
 #define NUM_PPG 3
@@ -126,8 +126,9 @@ void initBLE(char[]);
 TaskHandle_t Comm_Task;
 TaskHandle_t Sense_Task;
 
-//QueueHandle_t queue;
+QueueHandle_t queue;
 QueueHandle_t queue0,queue1,queue2;
+//SemaphoreHandle_t red0Val_mutex;
 
 
 void setup()
@@ -183,25 +184,27 @@ void setup()
      initBLE(serverName); 
   }
 
-  //4 bytes * 3 * 100 = 1200 byte
-  queue0 = xQueueCreate(1200, sizeof(uint8_t)); //always store stricly 4*r,4*ir,4*g, MSB to LSB
-  queue1 = xQueueCreate(1200, sizeof(uint8_t)); //always store stricly 4*r,4*ir,4*g, MSB to LSB
-  queue2 = xQueueCreate(1200, sizeof(uint8_t)); //always store stricly 4*r,4*ir,4*g, MSB to LSB
+  //20 total values, order = red, ir, g
+  queue0 = xQueueCreate(100, sizeof(uint32_t)); //always store stricly 4*r,4*ir,4*g, MSB to LSB
+  queue1 = xQueueCreate(100, sizeof(uint32_t)); //always store stricly 4*r,4*ir,4*g, MSB to LSB
+  queue2 = xQueueCreate(100, sizeof(uint32_t)); //always store stricly 4*r,4*ir,4*g, MSB to LSB
+
+//  red0val_mutex = xSemaphoreCreateMutex();
 
 
   xTaskCreatePinnedToCore(
                     Comm_Task_code,   /* Task function. */
                     "Comm_Task",     /* name of task. */
-                    10000,       /* Stack size of task */
+                    4000,       /* Stack size in words */
                     NULL,        /* parameter of the task */
-                    5,           /* priority of the task */
+                    10,           /* priority of the task */
                     &Comm_Task,      /* Task handle to keep track of created task */
                     0);          /* pin task to core 0 */                  
 
   xTaskCreatePinnedToCore(
                     Sense_Task_code,   /* Task function. */
                     "Sense_Task",     /* name of task. */
-                    10000,       /* Stack size of task */
+                    4000,       /* Stack size in words */
                     NULL,        /* parameter of the task */
                     5,           /* priority of the task */
                     &Sense_Task,      /* Task handle to keep track of created task */
@@ -221,84 +224,114 @@ void Comm_Task_code( void * pvParameters ){
     #ifdef SUCKIT
       Serial.print("CORE 0");
     #endif
-    uint8_t txRed0[4], txIr0[4], txGr0[4];
-    uint8_t txRed1[4], txIr1[4], txGr1[4];
-    uint8_t txRed2[4], txIr2[4], txGr2[4];
+//    uint8_t txRed0[4], txIr0[4], txGr0[4];
+//    uint8_t txRed1[4], txIr1[4], txGr1[4];
+//    uint8_t txRed2[4], txIr2[4], txGr2[4];
+    uint32_t txRed0, txIr0, txGr0;
+    uint32_t txRed1, txIr1, txGr1;
+    uint32_t txRed2, txIr2, txGr2;
     #ifdef DEBUG
     uint32_t testRed, testIr, testGr;
     #endif
 
-    xQueueReceive(queue0, &txRed0[0], portMAX_DELAY);
-    xQueueReceive(queue0, &txRed0[1], portMAX_DELAY);
-    xQueueReceive(queue0, &txRed0[2], portMAX_DELAY);
-    xQueueReceive(queue0, &txRed0[3], portMAX_DELAY);
+//    xQueueReceive(queue0, &txRed0[0], portMAX_DELAY);
+//    xQueueReceive(queue0, &txRed0[1], portMAX_DELAY);
+//    xQueueReceive(queue0, &txRed0[2], portMAX_DELAY);
+//    xQueueReceive(queue0, &txRed0[3], portMAX_DELAY);
+      if(xQueueReceive(queue0, &txRed0, portMAX_DELAY)){
+        Serial.println("Failed to receive red 0");
+      }
 
-    xQueueReceive(queue0, &txIr0[0], portMAX_DELAY);
-    xQueueReceive(queue0, &txIr0[1], portMAX_DELAY);
-    xQueueReceive(queue0, &txIr0[2], portMAX_DELAY);
-    xQueueReceive(queue0, &txIr0[3], portMAX_DELAY);
+//    xQueueReceive(queue0, &txIr0[0], portMAX_DELAY);
+//    xQueueReceive(queue0, &txIr0[1], portMAX_DELAY);
+//    xQueueReceive(queue0, &txIr0[2], portMAX_DELAY);
+//    xQueueReceive(queue0, &txIr0[3], portMAX_DELAY);
+      if(xQueueReceive(queue0, &txIr0, portMAX_DELAY)){
+        Serial.println("Failed to receive ir 0");
+      }
 
-    xQueueReceive(queue0, &txGr0[0], portMAX_DELAY);
-    xQueueReceive(queue0, &txGr0[1], portMAX_DELAY);
-    xQueueReceive(queue0, &txGr0[2], portMAX_DELAY);
-    xQueueReceive(queue0, &txGr0[3], portMAX_DELAY);
+//    xQueueReceive(queue0, &txGr0[0], portMAX_DELAY);
+//    xQueueReceive(queue0, &txGr0[1], portMAX_DELAY);
+//    xQueueReceive(queue0, &txGr0[2], portMAX_DELAY);
+//    xQueueReceive(queue0, &txGr0[3], portMAX_DELAY);
+      if(xQueueReceive(queue0, &txGr0, portMAX_DELAY)){
+        Serial.println("Failed to receive green 0");
+      }
 
-    xQueueReceive(queue1, &txRed1[0], portMAX_DELAY);
-    xQueueReceive(queue1, &txRed1[1], portMAX_DELAY);
-    xQueueReceive(queue1, &txRed1[2], portMAX_DELAY);
-    xQueueReceive(queue1, &txRed1[3], portMAX_DELAY);
+//    xQueueReceive(queue1, &txRed1[0], portMAX_DELAY);
+//    xQueueReceive(queue1, &txRed1[1], portMAX_DELAY);
+//    xQueueReceive(queue1, &txRed1[2], portMAX_DELAY);
+//    xQueueReceive(queue1, &txRed1[3], portMAX_DELAY);
+      if(xQueueReceive(queue1, &txRed1, portMAX_DELAY)){
+        Serial.println("Failed to receive red 1");
+      }
 
-    xQueueReceive(queue1, &txIr1[0], portMAX_DELAY);
-    xQueueReceive(queue1, &txIr1[1], portMAX_DELAY);
-    xQueueReceive(queue1, &txIr1[2], portMAX_DELAY);
-    xQueueReceive(queue1, &txIr1[3], portMAX_DELAY);
+//    xQueueReceive(queue1, &txIr1[0], portMAX_DELAY);
+//    xQueueReceive(queue1, &txIr1[1], portMAX_DELAY);
+//    xQueueReceive(queue1, &txIr1[2], portMAX_DELAY);
+//    xQueueReceive(queue1, &txIr1[3], portMAX_DELAY);
+      if(xQueueReceive(queue1, &txIr1, portMAX_DELAY)){
+        Serial.println("Failed to receive ir 1");
+      }
 
-    xQueueReceive(queue1, &txGr1[0], portMAX_DELAY);
-    xQueueReceive(queue1, &txGr1[1], portMAX_DELAY);
-    xQueueReceive(queue1, &txGr1[2], portMAX_DELAY);
-    xQueueReceive(queue1, &txGr1[3], portMAX_DELAY);
+//    xQueueReceive(queue1, &txGr1[0], portMAX_DELAY);
+//    xQueueReceive(queue1, &txGr1[1], portMAX_DELAY);
+//    xQueueReceive(queue1, &txGr1[2], portMAX_DELAY);
+//    xQueueReceive(queue1, &txGr1[3], portMAX_DELAY);
+      if(xQueueReceive(queue1, &txGr1, portMAX_DELAY)){
+        Serial.println("Failed to receive green 1");
+      }
 
-    xQueueReceive(queue2, &txRed2[0], portMAX_DELAY);
-    xQueueReceive(queue2, &txRed2[1], portMAX_DELAY);
-    xQueueReceive(queue2, &txRed2[2], portMAX_DELAY);
-    xQueueReceive(queue2, &txRed2[3], portMAX_DELAY);
+//    xQueueReceive(queue2, &txRed2[0], portMAX_DELAY);
+//    xQueueReceive(queue2, &txRed2[1], portMAX_DELAY);
+//    xQueueReceive(queue2, &txRed2[2], portMAX_DELAY);
+//    xQueueReceive(queue2, &txRed2[3], portMAX_DELAY);
+      if(xQueueReceive(queue2, &txRed2, portMAX_DELAY)){
+        Serial.println("Failed to receive red 2");
+      }
 
-    xQueueReceive(queue2, &txIr2[0], portMAX_DELAY);
-    xQueueReceive(queue2, &txIr2[1], portMAX_DELAY);
-    xQueueReceive(queue2, &txIr2[2], portMAX_DELAY);
-    xQueueReceive(queue2, &txIr2[3], portMAX_DELAY);
+//    xQueueReceive(queue2, &txIr2[0], portMAX_DELAY);
+//    xQueueReceive(queue2, &txIr2[1], portMAX_DELAY);
+//    xQueueReceive(queue2, &txIr2[2], portMAX_DELAY);
+//    xQueueReceive(queue2, &txIr2[3], portMAX_DELAY);
+      if(xQueueReceive(queue2, &txIr2, portMAX_DELAY)){
+        Serial.println("Failed to receive ir 2");
+      }
 
-    xQueueReceive(queue2, &txGr2[0], portMAX_DELAY);
-    xQueueReceive(queue2, &txGr2[1], portMAX_DELAY);
-    xQueueReceive(queue2, &txGr2[2], portMAX_DELAY);
-    xQueueReceive(queue2, &txGr2[3], portMAX_DELAY);
+//    xQueueReceive(queue2, &txGr2[0], portMAX_DELAY);
+//    xQueueReceive(queue2, &txGr2[1], portMAX_DELAY);
+//    xQueueReceive(queue2, &txGr2[2], portMAX_DELAY);
+//    xQueueReceive(queue2, &txGr2[3], portMAX_DELAY);
+      if(xQueueReceive(queue0, &txGr2, portMAX_DELAY)){
+        Serial.println("Failed to receive green 2");
+      }
     
     #ifdef DEBUG
-    memcpy(&testRed, &txRed0, sizeof(testRed));
-    memcpy(&testIr, &txIr0, sizeof(testIr));
-    memcpy(&testGr, &txGr0, sizeof(testGr));
-    
-    Serial.print("Tx red val: ");
-    Serial.println(testRed);
-    Serial.println();
-    Serial.print("Tx ir val: ");
-    Serial.println(testIr);
-    Serial.println();
-    Serial.print("Tx gr val: ");
-    Serial.println(testGr);
-    Serial.println();
+//    memcpy(&testRed, &txRed0, sizeof(testRed));
+//    memcpy(&testIr, &txIr0, sizeof(testIr));
+//    memcpy(&testGr, &txGr0, sizeof(testGr));
+//    
+//    Serial.print("Tx red val: ");
+//    Serial.println(testRed);
+//    Serial.println();
+//    Serial.print("Tx ir val: ");
+//    Serial.println(testIr);
+//    Serial.println();
+//    Serial.print("Tx gr val: ");
+//    Serial.println(testGr);
+//    Serial.println();
 
     #endif
 
-    red0Char->setValue(txRed0,4);
-    ir0Char->setValue(txIr0,4);
-    green0Char->setValue(txGr0,4);
-    red1Char->setValue(txRed1,4);
-    ir1Char->setValue(txIr1,4);
-    green1Char->setValue(txGr1,4);
-    red2Char->setValue(txRed2,4);
-    ir2Char->setValue(txIr2,4);
-    green2Char->setValue(txGr2,4);
+    red0Char->setValue((uint8_t*) &txRed0,4);
+    ir0Char->setValue((uint8_t*) &txIr0,4);
+    green0Char->setValue((uint8_t*) &txGr0,4);
+    red1Char->setValue((uint8_t*) &txRed1,4);
+    ir1Char->setValue((uint8_t*) &txIr1,4);
+    green1Char->setValue((uint8_t*) &txGr1,4);
+    red2Char->setValue((uint8_t*) &txRed2,4);
+    ir2Char->setValue((uint8_t*) &txIr2,4);
+    green2Char->setValue((uint8_t*) &txGr2,4);
     red0Char->notify();
     ir0Char->notify();
     green0Char->notify();
@@ -315,8 +348,8 @@ void Comm_Task_code( void * pvParameters ){
 
 void Sense_Task_code( void * pvParameters ){
   #ifdef DEBUG
-  Serial.print("Task2 running on core ");
-  Serial.println(xPortGetCoreID());
+//  Serial.print("Task2 running on core ");
+//  Serial.println(xPortGetCoreID());
   #endif
   
   const TickType_t xDelay = 100 / portTICK_PERIOD_MS;
@@ -328,8 +361,6 @@ void Sense_Task_code( void * pvParameters ){
       byte samplesTaken = 0;
       long startTime = micros();
     
-      while(samplesTaken < 10)
-      {
      #endif  
         tcaselect(0);
         ppg0.check(); //Check the sensor, read up to 3 samples //i2c burst read
@@ -346,60 +377,61 @@ void Sense_Task_code( void * pvParameters ){
           //TODO: shift this into another thread/ process &|| core..
     
           //begin with LSB
-          tempRed0[3] = data_red>>24;
-          xQueueSend(queue0, &tempRed0[3], portMAX_DELAY);
-          tempRed0[2] = data_red>>16;
-          xQueueSend(queue0, &tempRed0[2], portMAX_DELAY);
-          tempRed0[1] = data_red>>8;
-          xQueueSend(queue0, &tempRed0[1], portMAX_DELAY);
-          tempRed0[0] = data_red;
-          xQueueSend(queue0, &tempRed0[0], portMAX_DELAY);
+//          tempRed0[3] = data_red>>24;
+//          xQueueSendToBack(queue0, &tempRed0[3], portMAX_DELAY);
+//          tempRed0[2] = data_red>>16;
+//          xQueueSendToBack(queue0, &tempRed0[2], portMAX_DELAY);
+//          tempRed0[1] = data_red>>8;
+//          xQueueSendToBack(queue0, &tempRed0[1], portMAX_DELAY);
+//          tempRed0[0] = data_red;
+//          xQueueSendToBack(queue0, &tempRed0[0], portMAX_DELAY);
+
+            if(xQueueSendToBack(queue0, &data_red, portMAX_DELAY)){
+              Serial.println("Failed to send red 0");
+            }
     
-          tempIr0[3] = data_ir>>24;
-          xQueueSend(queue0, &tempIr0[3], portMAX_DELAY);
-          tempIr0[2] = data_ir>>16;
-          xQueueSend(queue0, &tempIr0[2], portMAX_DELAY);
-          tempIr0[1] = data_ir>>8;
-          xQueueSend(queue0, &tempIr0[1], portMAX_DELAY);
-          tempIr0[0] = data_ir;
-          xQueueSend(queue0, &tempIr0[0], portMAX_DELAY);
+//          tempIr0[3] = data_ir>>24;
+//          xQueueSendToBack(queue0, &tempIr0[3], portMAX_DELAY);
+//          tempIr0[2] = data_ir>>16;
+//          xQueueSendToBack(queue0, &tempIr0[2], portMAX_DELAY);
+//          tempIr0[1] = data_ir>>8;
+//          xQueueSendToBack(queue0, &tempIr0[1], portMAX_DELAY);
+//          tempIr0[0] = data_ir;
+//          xQueueSendToBack(queue0, &tempIr0[0], portMAX_DELAY);
+
+            if(xQueueSendToBack(queue0, &data_ir, portMAX_DELAY)){
+              Serial.println("Failed to send ir 0");
+            }
     
-          tempGreen0[3] = data_green>>24;
-          xQueueSend(queue0, &tempGreen0[3], portMAX_DELAY);
-          tempGreen0[2] = data_green>>16;
-          xQueueSend(queue0, &tempGreen0[2], portMAX_DELAY);
-          tempGreen0[1] = data_green>>8;
-          xQueueSend(queue0, &tempGreen0[1], portMAX_DELAY);
-          tempGreen0[0] = data_green;
-          xQueueSend(queue0, &tempGreen0[0], portMAX_DELAY);
+//          tempGreen0[3] = data_green>>24;
+//          xQueueSendToBack(queue0, &tempGreen0[3], portMAX_DELAY);
+//          tempGreen0[2] = data_green>>16;
+//          xQueueSendToBack(queue0, &tempGreen0[2], portMAX_DELAY);
+//          tempGreen0[1] = data_green>>8;
+//          xQueueSendToBack(queue0, &tempGreen0[1], portMAX_DELAY);
+//          tempGreen0[0] = data_green;
+//          xQueueSendToBack(queue0, &tempGreen0[0], portMAX_DELAY);
+
+            if(xQueueSendToBack(queue0, &data_green, portMAX_DELAY)){
+              Serial.println("Failed to send green 0");
+            }
     
           #ifdef DEBUG
             uint32_t testRead;
             memcpy(&testRead, &tempRed0, sizeof(testRead));
           #endif
           
-          #ifdef DEBUG
-            Serial.print("TEMP RED: ");
-            Serial.print(testRead);
-            Serial.println();
-            Serial.print("REAL RED: ");
-            Serial.print(data_red);
-            Serial.println();
-          #endif   
+//          #ifdef DEBUG
+//            Serial.print("TEMP RED: ");
+//            Serial.print(testRead);
+//            Serial.println();
+//            Serial.print("REAL RED: ");
+//            Serial.print(data_red);
+//            Serial.println();
+//          #endif   
           
           ppg0.nextSample(); //We're finished with this sample so move to next sample
         }
-     #ifdef DEBUG   
-      }
-     
-    
-      long endTime = micros();
-    
-      Serial.print("Hz[");
-      Serial.print((float)samplesTaken / ((endTime - startTime) / 1000000.0), 2);
-      Serial.print("]");
-      Serial.println();
-     #endif
 
       tcaselect(1);
       ppg1.check();
@@ -413,32 +445,44 @@ void Sense_Task_code( void * pvParameters ){
           //TODO: shift this into another thread/ process &|| core..
     
           //begin with LSB
-          tempRed1[3] = data_red>>24;
-          xQueueSend(queue1, &tempRed1[3], portMAX_DELAY);
-          tempRed1[2] = data_red>>16;
-          xQueueSend(queue1, &tempRed1[2], portMAX_DELAY);
-          tempRed1[1] = data_red>>8;
-          xQueueSend(queue1, &tempRed1[1], portMAX_DELAY);
-          tempRed1[0] = data_red;
-          xQueueSend(queue1, &tempRed1[0], portMAX_DELAY);
+//          tempRed1[3] = data_red>>24;
+//          xQueueSendToBack(queue1, &tempRed1[3], portMAX_DELAY);
+//          tempRed1[2] = data_red>>16;
+//          xQueueSendToBack(queue1, &tempRed1[2], portMAX_DELAY);
+//          tempRed1[1] = data_red>>8;
+//          xQueueSendToBack(queue1, &tempRed1[1], portMAX_DELAY);
+//          tempRed1[0] = data_red;
+//          xQueueSendToBack(queue1, &tempRed1[0], portMAX_DELAY);
+
+            if(xQueueSendToBack(queue1, &data_red, portMAX_DELAY)){
+              Serial.println("Failed to send red 1");
+            }
     
-          tempIr1[3] = data_ir>>24;
-          xQueueSend(queue1, &tempIr1[3], portMAX_DELAY);
-          tempIr1[2] = data_ir>>16;
-          xQueueSend(queue1, &tempIr1[2], portMAX_DELAY);
-          tempIr1[1] = data_ir>>8;
-          xQueueSend(queue1, &tempIr1[1], portMAX_DELAY);
-          tempIr1[0] = data_ir;
-          xQueueSend(queue1, &tempIr1[0], portMAX_DELAY);
+//          tempIr1[3] = data_ir>>24;
+//          xQueueSendToBack(queue1, &tempIr1[3], portMAX_DELAY);
+//          tempIr1[2] = data_ir>>16;
+//          xQueueSendToBack(queue1, &tempIr1[2], portMAX_DELAY);
+//          tempIr1[1] = data_ir>>8;
+//          xQueueSendToBack(queue1, &tempIr1[1], portMAX_DELAY);
+//          tempIr1[0] = data_ir;
+//          xQueueSendToBack(queue1, &tempIr1[0], portMAX_DELAY);
+
+            if(xQueueSendToBack(queue1, &data_ir, portMAX_DELAY)){
+              Serial.println("Failed to send ir 1");
+            }
     
-          tempGreen1[3] = data_green>>24;
-          xQueueSend(queue1, &tempGreen1[3], portMAX_DELAY);
-          tempGreen1[2] = data_green>>16;
-          xQueueSend(queue1, &tempGreen1[2], portMAX_DELAY);
-          tempGreen1[1] = data_green>>8;
-          xQueueSend(queue1, &tempGreen1[1], portMAX_DELAY);
-          tempGreen1[0] = data_green;
-          xQueueSend(queue1, &tempGreen1[0], portMAX_DELAY);
+//          tempGreen1[3] = data_green>>24;
+//          xQueueSendToBack(queue1, &tempGreen1[3], portMAX_DELAY);
+//          tempGreen1[2] = data_green>>16;
+//          xQueueSendToBack(queue1, &tempGreen1[2], portMAX_DELAY);
+//          tempGreen1[1] = data_green>>8;
+//          xQueueSendToBack(queue1, &tempGreen1[1], portMAX_DELAY);
+//          tempGreen1[0] = data_green;
+//          xQueueSendToBack(queue1, &tempGreen1[0], portMAX_DELAY);
+
+            if(xQueueSendToBack(queue1, &data_green, portMAX_DELAY)){
+              Serial.println("Failed to send green 1");
+            }
           
           ppg1.nextSample(); //We're finished with this sample so move to next sample
         }
@@ -455,36 +499,60 @@ void Sense_Task_code( void * pvParameters ){
           //TODO: shift this into another thread/ process &|| core..
     
           //begin with LSB
-          tempRed2[3] = data_red>>24;
-          xQueueSend(queue2, &tempRed2[3], portMAX_DELAY);
-          tempRed2[2] = data_red>>16;
-          xQueueSend(queue2, &tempRed2[2], portMAX_DELAY);
-          tempRed2[1] = data_red>>8;
-          xQueueSend(queue2, &tempRed2[1], portMAX_DELAY);
-          tempRed2[0] = data_red;
-          xQueueSend(queue2, &tempRed2[0], portMAX_DELAY);
+//          tempRed2[3] = data_red>>24;
+//          xQueueSendToBack(queue2, &tempRed2[3], portMAX_DELAY);
+//          tempRed2[2] = data_red>>16;
+//          xQueueSendToBack(queue2, &tempRed2[2], portMAX_DELAY);
+//          tempRed2[1] = data_red>>8;
+//          xQueueSendToBack(queue2, &tempRed2[1], portMAX_DELAY);
+//          tempRed2[0] = data_red;
+//          xQueueSendToBack(queue2, &tempRed2[0], portMAX_DELAY);
+
+            if(xQueueSendToBack(queue2, &data_red, portMAX_DELAY)){
+              Serial.println("Failed to send red 2");
+            }
     
-          tempIr2[3] = data_ir>>24;
-          xQueueSend(queue2, &tempIr2[3], portMAX_DELAY);
-          tempIr2[2] = data_ir>>16;
-          xQueueSend(queue2, &tempIr2[2], portMAX_DELAY);
-          tempIr2[1] = data_ir>>8;
-          xQueueSend(queue2, &tempIr2[1], portMAX_DELAY);
-          tempIr2[0] = data_ir;
-          xQueueSend(queue2, &tempIr2[0], portMAX_DELAY);
+//          tempIr2[3] = data_ir>>24;
+//          xQueueSendToBack(queue2, &tempIr2[3], portMAX_DELAY);
+//          tempIr2[2] = data_ir>>16;
+//          xQueueSendToBack(queue2, &tempIr2[2], portMAX_DELAY);
+//          tempIr2[1] = data_ir>>8;
+//          xQueueSendToBack(queue2, &tempIr2[1], portMAX_DELAY);
+//          tempIr2[0] = data_ir;
+//          xQueueSendToBack(queue2, &tempIr2[0], portMAX_DELAY);
+
+            if(xQueueSendToBack(queue2, &data_ir, portMAX_DELAY)){
+              Serial.println("Failed to send ir 2");
+            }
     
-          tempGreen2[3] = data_green>>24;
-          xQueueSend(queue2, &tempGreen2[3], portMAX_DELAY);
-          tempGreen2[2] = data_green>>16;
-          xQueueSend(queue2, &tempGreen2[2], portMAX_DELAY);
-          tempGreen2[1] = data_green>>8;
-          xQueueSend(queue2, &tempGreen2[1], portMAX_DELAY);
-          tempGreen2[0] = data_green;
-          xQueueSend(queue2, &tempGreen2[0], portMAX_DELAY);   
+//          tempGreen2[3] = data_green>>24;
+//          xQueueSendToBack(queue2, &tempGreen2[3], portMAX_DELAY);
+//          tempGreen2[2] = data_green>>16;
+//          xQueueSendToBack(queue2, &tempGreen2[2], portMAX_DELAY);
+//          tempGreen2[1] = data_green>>8;
+//          xQueueSendToBack(queue2, &tempGreen2[1], portMAX_DELAY);
+//          tempGreen2[0] = data_green;
+//          xQueueSendToBack(queue2, &tempGreen2[0], portMAX_DELAY);
+
+            if(xQueueSendToBack(queue2, &data_green, portMAX_DELAY)){
+              Serial.println("Failed to send green 2");
+            }
+            
           ppg2.nextSample(); //We're finished with this sample so move to next sample
         }
 
-        vTaskDelay(xDelay);
+        //vTaskDelay(xDelay);
+
+      #ifdef DEBUG   
+     
+    
+      long endTime = micros();
+    
+      Serial.print("Hz[");
+      Serial.print((float)samplesTaken / ((endTime - startTime) / 1000000.0), 2);
+      Serial.print("]");
+      Serial.println();
+     #endif
       
   }
 }

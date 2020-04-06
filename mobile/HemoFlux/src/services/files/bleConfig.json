@@ -1,0 +1,71 @@
+
+{
+    "devID" : "D8:A0:1D:6A:90:D2",
+    "genAttributeSID" : "00001801-0000-100-8000-00805f9b34fb",
+    "genAccessSID" : "00001800-0000-100-8000-00805f9b34fb",
+    "battLvlSID" : "0000180F-0000-100-8000-00805f9b34fb",
+    "heartRateSID" : "0000180D-0000-100-8000-00805f9b34fb",
+    "devInfoSID" : "0000180A-0000-100-8000-00805f9b34fb",
+    "devInfoCID" : {
+        "manufact" : "00002A29-0000-100-8000-00805f9b34fb",
+        "modelnum" : "00002A24-0000-100-8000-00805f9b34fb",
+        "hardwareRev" : "00002A27-0000-100-8000-00805f9b34fb",
+        "firmwareRev" : "00002A26-0000-100-8000-00805f9b34fb",
+        "systemID" : "00002A23-0000-100-8000-00805f9b34fb"
+    },
+    "channelSID" : "0265204d-6cfd-4be7-8548-25f0f941b794",
+    "channelCID" : {
+        "r0" : "050447d6-8ac9-4bd8-b004-0a5fe425029a",
+        "r1" : "59eb1a6f-9839-483d-90aa-511b96585820",
+        "r2" : "031edcf6-02c9-4267-a657-91eacd0febc8",
+        "r3" : "2733431b-0e59-4f38-8cb4-33b3f6bb8795",
+        "r4" : "3bb2770d-89a0-45ac-8aad-ca1a7ad9fe3e",
+        "r5" : "67051d05-68ac-4748-840b-b835600f2ad7",
+        "r6" : "f9c35962-b1d1-40a8-8766-0d9e6f1fb1ea",
+        "i0" : "654859cc-9a09-453f-b87a-8493f0fc1890",
+        "i1" : "ec402230-01bb-4013-85a2-82df61e7b869",
+        "i2" : "392e2b46-ac60-4807-a329-016c65f09a28",
+        "i3" : "2dd4bab3-1416-425f-a12f-ebaf5f9fe4ab",
+        "i4" : "6813e7f7-6c85-460a-9715-c096c7c8a61f",
+        "i5" : "8844f336-3974-45c3-b582-c3369baf3f27",
+        "i6" : "fdbddd27-6328-4cc1-bb0d-666a1b4fb8eb",
+        "g0" : "686af018-8d13-4dd0-afe1-fecbdd054219",
+        "g1" : "711c47c2-3b96-4fee-ace5-fad82ea2f41b",
+        "g2" : "e344ff91-2d0c-43fe-bf4c-41bf78047cdf",
+        "g3" : "8b98cdf7-838e-4d0e-bdc8-1f17ab49c32d",
+        "g4" : "39261629-11a6-4daf-b8bc-f928de195e93",
+        "g5" : "fd9770fd-4073-4fb7-b7ad-3efd232113b8",
+        "g6" : "9704c035-f804-4e29-bace-14b8d0a4ec77"
+    },
+    "dimensionSID" : "40940496-19d7-4c8f-9057-f87bb56c6210",
+    "dimensionCID" : {
+        "ax" : "9f0f16e4-3a52-4669-9f6f-6415083429de",
+        "ay" : "b3a77cdb-5015-4ccd-abbf-0fde8541b75d",
+        "az" : "07c4d47a-e25b-416a-a39f-14727cb9d062",
+        "gx" : "d1b604bf-351c-444c-98d0-49a200bcb7e4",
+        "gy" : "bd19e5d0-2a47-4407-b7ab-6d6f20b15bd7",
+        "gz" : "852b8b8d-3a64-4733-996b-b0f55452f592"
+    },
+    "ppgSetup" : {
+        "ledBrightness" : "0xFF", 
+        "sampleAverage" : "1",
+        "ledMode" : 3,
+        "sampleRate" : 400,
+        "pulseWidth" : 69,
+        "adcRange" : 16384
+    },
+    "deviceSetup" : {
+        "MAX_NUM_PPG" : 7,
+        "NUM_PPG" : 1,
+        "MAX_CHAR_HANDLE" : 25,
+        "BATTLVLPIN" : 34
+    },
+    "imuSetup" : {
+        "imu_buffersize" : 1000,
+        "acel_deadzone" : 8,
+        "gyro_deadzone" : 1
+    }
+
+
+
+}
