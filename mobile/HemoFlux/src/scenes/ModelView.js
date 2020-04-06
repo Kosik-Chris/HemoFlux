@@ -6,10 +6,13 @@
 
 import React, {PureComponent} from 'react';
 import {StyleSheet, processColor, View, Text,TouchableOpacity, ScrollView, Platform} from 'react-native';
+import { AppearanceProvider, useColorScheme } from 'react-native-appearance';
+
 import GestureControl from '../components/modelcontrol/GestureControl';
 import Animations from '../components/modelcontrol/Animations';
 import Multiple from '../components/modelcontrol/Multiple';
 import RuntimeAssets from '../components/modelcontrol/RuntimeAssets';
+import { createStackNavigator } from 'react-navigation-stack';
 
 export default class ModelView extends PureComponent {
 

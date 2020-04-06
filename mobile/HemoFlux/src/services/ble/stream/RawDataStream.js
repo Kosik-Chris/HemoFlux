@@ -1422,6 +1422,8 @@ export default class RawDataStream extends PureComponent {
    * Called when component is initialized (after constructor) to mount channels
    */
   componentDidMount() {
+    if(this.props.device.name != null){
+
     this.subscribeToChannels();
     if (this.state.r0values.length >= dataWidth) {
       console.log("some mount error..");
@@ -1834,7 +1836,7 @@ export default class RawDataStream extends PureComponent {
           });
         }
     }, updateRate);
-
+    }
   }
   /**
    * Called when component is removed

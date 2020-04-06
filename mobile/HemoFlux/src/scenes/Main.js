@@ -4,7 +4,7 @@
  * @flow
  */
 import 'react-native-gesture-handler';
-import React, {Component, PureComponent} from 'react';
+import React, {Component, PureComponent, useEffect} from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -16,17 +16,21 @@ import {
   Platform,
   Dimensions
 } from 'react-native';
+import RNBootSplash from "react-native-bootsplash";
+import { AppearanceProvider, useColorScheme } from 'react-native-appearance';
 import {createAppContainer, StackActions} from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
 import { createBottomTabNavigator } from 'react-navigation-tabs';
 import Modal from 'react-native-modal';
 import RNAndroidLocationEnabler from "react-native-android-location-enabler";
 import DeviceInfo from 'react-native-device-info';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import DeviceInfoScreen from '../components/device/deviceInfo';
 import Insights from '../scenes/Insights';
 import ModelView from '../scenes/ModelView';
 import RawDataStream from '../services/ble/stream/RawDataStream';
+import Profile from '../scenes/Profile';
 
 
 import {
@@ -57,7 +61,7 @@ const manager = new BleManager();
 class Main extends PureComponent {
 
   static navigationOptions = {
-    title: 'Main',
+    title: 'Session',
     headerStyle: {
       backgroundColor: '#f4511e',
     },
@@ -76,31 +80,11 @@ class Main extends PureComponent {
         //other device info (chars & services are subscribed/ accessed by other components)
         deviceLIST: [],
         device: null,
-        // device: {
-        //   connected: false,  
-        //   name: null,
-        //   id: null,
-        //   rssi: null,
-        //   batt_lvl: null,
-        //   heart_rate: null,
-        //   ax_val: null,
-        //   ay_val: null,
-        //   az_val: null,
-        //   gx_val: null,
-        //   gy_val: null,
-        //   gz_val: null,
-        //   dev_info: {
-        //       manufact_name: null,
-        //       model_num: null,
-        //       hardware_version: null,
-        //       firmware_version: null,
-        //       system_id: null,
-        //   },
-        // },
     };
   }
 
   componentDidMount() {
+    RNBootSplash.hide({ duration: 250 }); // fade
     request(
       Platform.select({
         android: PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
@@ -187,21 +171,22 @@ class Main extends PureComponent {
     //not connected don't attempt to start components that need device prop
     if(this.state.device == null){
       return (
-        <View
-          style={{
-            flex: 1,
-            alignItems: 'center',
-            justifyContent: 'center',
-            alignItems: 'stretch',
-          }}>
-          <View style={{flex: 1}}>
+        <View style={styles.body}>
+          <View style={styles.controlPanel}>
             <Button
-              title="Scan & Connect"
+              title="Start"
               onPress={this.scanDevices}
+              style={styles.sessionBtn}
             />
             <Button
-              title="DeviceInfo"
-              onPress={() => this.props.navigation.navigate('DeviceInfoScreen')}
+              title="Record"
+              //onPress={}
+              style={styles.sessionBtn}
+            />
+            <Button
+              title="Stop"
+              //onPress={}
+              style={styles.sessionBtn}
             />
           </View>
         </View> 
@@ -209,21 +194,22 @@ class Main extends PureComponent {
     }
     else{
       return (
-        <View
-          style={{
-            flex: 1,
-            alignItems: 'center',
-            justifyContent: 'center',
-            alignItems: 'stretch',
-          }}>
+        <View style={styles.body}>
           <View style={{flex: 1}}>
             <Button
-              title="Scan & Connect"
+              title="Start"
               onPress={this.scanDevices}
+              style={styles.sessionBtn}
             />
             <Button
-              title="DeviceInfo"
-              onPress={() => this.props.navigation.navigate('DeviceInfoScreen')}
+              title="Record"
+              //onPress={}
+              style={styles.sessionBtn}
+            />
+            <Button
+              title="Stop"
+              //onPress={}
+              style={styles.sessionBtn}
             />
             <RawDataStream device={this.state.device} style={{}} />
           </View>
@@ -279,19 +265,36 @@ const styles = StyleSheet.create({
     width: '33%',
     flexDirection: 'row'
   },
+  controlPanel : {
+    padding: 2,
+    width: '80%',
+    justifyContent: 'space-between',
+    bottom: 0,
+    position: 'absolute'
+  },
+  sessionBtn : {
+    width: '20%'
+  }
 });
 
 const RootTabNav = createBottomTabNavigator(
   {
     Main: Main,
-    DeviceInfoScreen: DeviceInfoScreen,
-    Insights: Insights,
     ModelView: ModelView,
+    Insights: Insights,
+    Profile: Profile,
   },
   {
     initialRouteName: 'Main',
   },
+  {
+    defaultNavigationOptions: ({navigation}) => ({
+
+    })
+  }
+
 );
+
 
 const AppContainer =  createAppContainer(RootTabNav);
 

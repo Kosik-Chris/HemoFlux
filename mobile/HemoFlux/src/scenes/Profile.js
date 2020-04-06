@@ -6,26 +6,26 @@
 
 import React, {PureComponent, Component} from 'react';
 import {StyleSheet, processColor, View, Text, TouchableOpacity, ScrollView, Platform} from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker'; //figure out how to use this
 import { AppearanceProvider, useColorScheme } from 'react-native-appearance';
 
-import DateTimePicker from '@react-native-community/datetimepicker'; //figure out how to use this
 import { createStackNavigator } from 'react-navigation-stack';
 import Stock from '../components/charts/Stock';
 import Sinewave from '../components/charts/Sinewave';
 import RNFetchBlob from 'rn-fetch-blob';
-import Piechart from '../components/charts/Piechart';
+import Scatter from '../components/charts/Scatter';
 
 
 
 
-export default class Insights extends Component {
+export default class Profile extends Component {
 
 
 
 
   render() {
     return(
-      <Piechart/>
+      <Scatter/>
     );
   }
 
