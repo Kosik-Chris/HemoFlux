@@ -6,7 +6,6 @@
 
 import React, {PureComponent, Component} from 'react';
 import {StyleSheet, processColor, View, Text, TouchableOpacity, ScrollView, Platform} from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker'; //figure out how to use this
 import { AppearanceProvider, useColorScheme } from 'react-native-appearance';
 
 import { createStackNavigator } from 'react-navigation-stack';
