@@ -8,7 +8,6 @@ import React, {PureComponent, Component} from 'react';
 import {StyleSheet, processColor, View, Text, TouchableOpacity, ScrollView, Platform} from 'react-native';
 import { AppearanceProvider, useColorScheme } from 'react-native-appearance';
 
-import DateTimePicker from '@react-native-community/datetimepicker'; //figure out how to use this
 import { createStackNavigator } from 'react-navigation-stack';
 import Stock from '../components/charts/Stock';
 import Sinewave from '../components/charts/Sinewave';

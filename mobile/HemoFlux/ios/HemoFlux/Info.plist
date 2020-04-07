@@ -2,6 +2,17 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+
+	<!--Begin Permissions-->
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Device BLE</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>BLE Peripheral</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>App always uses BLE</string>
+	<key>NSMotionUsageDescription</key>
+	<string>Motion usage</string>
+	<!--End Permissions-->
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
@@ -45,7 +56,7 @@
 		<string>bluetooth-peripheral</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
+	<string>BootSplash</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>armv7</string>

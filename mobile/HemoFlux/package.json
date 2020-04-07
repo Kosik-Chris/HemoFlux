@@ -10,7 +10,6 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@react-native-community/datetimepicker": "^2.3.1",
     "@react-native-community/masked-view": "^0.1.7",
     "axios": "^0.19.2",
     "buffer": "^5.5.0",
