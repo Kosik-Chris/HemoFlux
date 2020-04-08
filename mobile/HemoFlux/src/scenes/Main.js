@@ -20,10 +20,11 @@ import RNBootSplash from "react-native-bootsplash";
 import { AppearanceProvider, useColorScheme } from 'react-native-appearance';
 import {createAppContainer, StackActions} from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
-import { createBottomTabNavigator } from 'react-navigation-tabs';
+import { createBottomTabNavigator, BottomTabBar } from 'react-navigation-tabs';
 import Modal from 'react-native-modal';
 import RNAndroidLocationEnabler from "react-native-android-location-enabler";
 import DeviceInfo from 'react-native-device-info';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import DeviceInfoScreen from '../components/device/deviceInfo';
@@ -31,6 +32,8 @@ import Insights from '../scenes/Insights';
 import ModelView from '../scenes/ModelView';
 import RawDataStream from '../services/ble/stream/RawDataStream';
 import Profile from '../scenes/Profile';
+import Welcome from '../components/info/Welcome';
+
 
 
 import {
@@ -48,7 +51,7 @@ import {
   isLocationEnabled,
   useBatteryLevel,
 } from 'react-native-device-info';
-import {check, request, PERMISSIONS, RESULTS} from 'react-native-permissions';
+import {check, request, PERMISSIONS, RESULTS, openSettings} from 'react-native-permissions';
 import { BleManager, ScanMode, Service } from 'react-native-ble-plx';
 import BLEconfig from '../services/files/bleConfig.json';
 
@@ -56,7 +59,9 @@ let ScanOptions = { scanMode: ScanMode.LowLatency };
 let deviceList = new Map(); //holder for all devices
 let BleManagerOptions = {restoreStateIdentifier: "hello"}; //TODO: work on background/ restored state functionality
 
-const manager = new BleManager();
+const TabBarComponent = props => <BottomTabBar {...props} />;
+let manager; 
+
 
 class Main extends PureComponent {
 
@@ -75,22 +80,40 @@ class Main extends PureComponent {
     super(props);
 
     this.state = {
-        isModalVisible: false,
+        isSetupModalVisible: false,
+        isSessionModalVisible: false,
+        isSessionRunning: false,
         orientation: '',
         //other device info (chars & services are subscribed/ accessed by other components)
         deviceLIST: [],
         device: null,
+        isConnected: false,
+        updateRate: 30,
+        dataWidth: 10,
     };
   }
 
+  async requestAll(){
+    if(Platform.OS === 'android'){
+      const aFineLoc = await request(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
+      const aReadExt = await request(PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE);
+      const aWriteExt = await request(PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE);
+      return {aFineLoc,aReadExt,aWriteExt};
+    }
+    if(Platform.OS === 'ios'){
+      const iLocAlways = await request(PERMISSIONS.IOS.LOCATION_ALWAYS);
+      const iLocWhenUse = await request(PERMISSIONS.IOS.LOCATION_WHEN_IN_USE);
+      const iMotion = await request(PERMISSIONS.IOS.MOTION);
+      const iBLEP = await request(PERMISSIONS.IOS.BLUETOOTH_PERIPHERAL);
+      return {iLocAlways,iLocWhenUse,iMotion,iBLEP};
+    }
+  }
+
   componentDidMount() {
-    RNBootSplash.hide({ duration: 250 }); // fade
-    request(
-      Platform.select({
-        android: PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
-        ios: PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
-      }),
-    );
+    manager = new BleManager();
+    console.log(this.state.isSetupModalVisible);
+    RNBootSplash.hide({ duration: 250 }); // fade bootsplash screen out
+    this.requestAll().then(status => console.log(status));
     Platform.select({
       android:  RNAndroidLocationEnabler.promptForEnableLocationIfNeeded({
                 interval: 10000,
@@ -125,6 +148,10 @@ class Main extends PureComponent {
   };
 
   scanDevices = () => {
+    this.toggleSetupModal;
+    this.setState({
+      isSetupModalVisible: false
+    })
     console.log("beginning scan..");
     manager.startDeviceScan(
       //[BLEconfig.devID]
@@ -146,72 +173,137 @@ class Main extends PureComponent {
     );
   }
 
+  disconnect = () => {
+    if(this.state.isConnected){
+      this.setState({
+        isConnected: false,
+        isSessionRunning: false,
+      });
+      manager.cancelDeviceConnection(this.state.device.id);
+    }
+  }
+
 
   async connectToDevice(device){
+    console.log(this.state.dataWidth);
     //console.log("device state set for: "+this.state.device.name);
     await device.connect();
-    console.log("connected to device!");
     this.setState({
-      device: device
+      device: device,
+      isConnected: true,
+      isSessionRunning: true
     });
     const deviceSubscribe = manager.onDeviceDisconnected(this.state.device.id, () => {
             //subscription, device has disconnected due to error or connection issue
             //attempt to re-connect auto? look for better solution
-        console.log("device has disconnected.. attempting to reconnect");
+            if(this.state.isSessionRunning === true){
+              console.log("session still running, connection error");
+            }
+            else{
+              console.log("succesful disconnection");
+            }
         
     });
   }
 
 
-  toggleModal = () => {
-    this.setState({isModalVisible: !this.state.isModalVisible});
+  toggleSetupModal = () => {
+    console.log(this.state.isSetupModalVisible);
+    this.setState({isSetupModalVisible: !this.state.isSetupModalVisible});
+    console.log(this.state.isSetupModalVisible);
   };
+  toggleSessionModal = () => {
+    this.setState({isSessionModalVisible: !this.state.isSessionModalVisible});
+  }
 
   render() {
+
     //not connected don't attempt to start components that need device prop
-    if(this.state.device == null){
+    if(this.state.isSessionRunning === false){
       return (
         <View style={styles.body}>
+        <Welcome />
+        <Modal isVisible={this.state.isSetupModalVisible}
+        style={styles.setupModal}
+        hasBackdrop={true}
+        backdropColor={'black'}
+        backdropOpacity={0.3}
+        >
+          <View style={{flex: 1}}>
+            <Text>Hello!</Text>
+            <Button title="Start Session" onPress={this.scanDevices}/>
+            <Button title="Hide modal" onPress={this.toggleSetupModal} />
+          </View>
+        </Modal>
           <View style={styles.controlPanel}>
-            <Button
-              title="Start"
-              onPress={this.scanDevices}
-              style={styles.sessionBtn}
-            />
-            <Button
-              title="Record"
-              //onPress={}
-              style={styles.sessionBtn}
-            />
-            <Button
-              title="Stop"
-              //onPress={}
-              style={styles.sessionBtn}
-            />
+            <View style={styles.controlPanelRow}>
+              <View style={styles.sessionBtnWrapper}>
+                <Icon.Button
+                name="play"
+                backgroundColor="#e74d00"
+                onPress={this.toggleSetupModal}
+                >
+                  Start
+                </Icon.Button>
+              </View>
+              <View style={styles.sessionBtnWrapper}>
+              <Icon.Button
+                name="folder"
+                backgroundColor="#e74d00"
+                >
+                  Record
+                </Icon.Button>
+              </View>
+              <View style={styles.sessionBtnWrapper}>
+              <Icon.Button
+                name="ellipsis-v"
+                backgroundColor="#e74d00"
+                // onPress={this.toggleSetupModal}
+                >
+                </Icon.Button>
+              </View>
+            </View>
           </View>
         </View> 
       );
     }
-    else{
+    if(this.state.isSessionRunning === true){
       return (
         <View style={styles.body}>
-          <View style={{flex: 1}}>
-            <Button
-              title="Start"
-              onPress={this.scanDevices}
-              style={styles.sessionBtn}
-            />
-            <Button
-              title="Record"
-              //onPress={}
-              style={styles.sessionBtn}
-            />
-            <Button
-              title="Stop"
-              //onPress={}
-              style={styles.sessionBtn}
-            />
-            <RawDataStream device={this.state.device} style={{}} />
+          <View style={styles.controlPanel}>
+            <View style={styles.controlPanelRow}>
+              <View style={styles.sessionBtnWrapper}>
+              <Icon.Button
+                name="stop"
+                backgroundColor="#e74d00"
+                onPress={this.disconnect}
+                >
+                 Stop
+                </Icon.Button>
+              </View>
+              <View style={styles.sessionBtnWrapper}>
+              <Icon.Button
+                name="folder"
+                backgroundColor="#e74d00"
+                >
+                  Record
+                </Icon.Button>
+              </View>
+              <View style={styles.sessionBtnWrapper}>
+              <Icon.Button
+                name="filter"
+                backgroundColor="#e74d00"
+                >
+                  Settings
+                </Icon.Button>
+              </View>
+            </View>
+          </View>
+          <View style={styles.graphContainer}>
+              <RawDataStream device={this.state.device}
+               dataWidth={this.state.dataWidth}
+               updateRate={this.state.updateRate}
+               style={{height: '50%'}} />
           </View>
         </View> 
       );
@@ -227,11 +319,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   body: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
+    //flex: 1,
+    backgroundColor: '#ffffff',
     alignItems: 'flex-start',
     flexDirection: 'column',
-    height: '100%'
+    height: '100%',
+    width: '100%'
   },
   headerRow: {
     flexDirection: 'row',
@@ -266,15 +359,44 @@ const styles = StyleSheet.create({
     flexDirection: 'row'
   },
   controlPanel : {
-    padding: 2,
-    width: '80%',
-    justifyContent: 'space-between',
+    padding: 5,
+    borderWidth: 2,
+    width: '100%',
+    height: (Dimensions.get('window').height/15),
     bottom: 0,
-    position: 'absolute'
+    position: 'absolute',
+    alignItems: 'center',
+    backgroundColor: '#e6e6e6'
+  },
+  controlPanelRow: {
+    width: '100%',
+    justifyContent: 'space-between',
+    flexDirection: 'row',
   },
   sessionBtn : {
-    width: '20%'
-  }
+    width: '20%',
+  },
+  sessionBtnWrapper : {
+    display: 'flex',
+    marginLeft: 10,
+    marginRight: 10,
+    alignItems: 'stretch',
+    marginTop: 0,
+  },
+  graphContainer : {
+    justifyContent: 'center',
+    alignSelf: 'center',
+    backgroundColor: 'transparent',
+    width: '100%',
+    height: '90%',
+    top: 0
+  },
+  setupModal: {
+
+  },
+  sessionModal: {
+
+  },
 });
 
 const RootTabNav = createBottomTabNavigator(
@@ -285,12 +407,39 @@ const RootTabNav = createBottomTabNavigator(
     Profile: Profile,
   },
   {
-    initialRouteName: 'Main',
-  },
-  {
-    defaultNavigationOptions: ({navigation}) => ({
+    defaultNavigationOptions: ({ navigation }) => ({
+      tabBarIcon: ({ focused, horizontal, tintColor }) => {
+        const { routeName } = navigation.state;
+        let IconComponent = Icon;
+        let iconName;
+        if (routeName === 'Main') {
+          iconName = focused
+            ? 'signal'
+            : 'signal';
+          // Sometimes we want to add badges to some icons.
+          // You can check the implementation below.
+          //IconComponent = HomeIconWithBadge;
+        } else if (routeName === 'ModelView') {
+          iconName = focused ? 'child' : 'child';
+        }
+        else if(routeName === 'Insights'){
+          iconName = focused ? 'bar-chart' : 'bar-chart';
+        }
+        else if(routeName === 'Profile'){
+          iconName = focused ? 'user' : 'user';
+        }
 
-    })
+        // You can return any component that you like here!
+        return <IconComponent name={iconName} size={25} color={tintColor} />;
+      },
+    }),
+    tabBarOptions: {
+      activeTintColor: 'red',
+      inactiveTintColor: 'white',
+      style: {
+        backgroundColor: 'black', //#e6e6e6
+      }
+    },
   }
 
 );

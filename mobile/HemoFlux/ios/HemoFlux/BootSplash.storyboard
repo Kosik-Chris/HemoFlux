@@ -23,7 +23,7 @@
                                 </accessibility>
                             </imageView>
                         </subviews>
-                        <color key="backgroundColor" red="0.568627450980392" green="0.203921568627451" blue="0.333333333333333" alpha="1" colorSpace="calibratedRGB"/>
+                        <color key="backgroundColor" red="0.200000000000000" green="0.200000000000000" blue="0.200000000000000" alpha="1" colorSpace="calibratedRGB"/>
                         <accessibility key="accessibilityConfiguration">
                             <accessibilityTraits key="traits" notEnabled="YES"/>
                         </accessibility>

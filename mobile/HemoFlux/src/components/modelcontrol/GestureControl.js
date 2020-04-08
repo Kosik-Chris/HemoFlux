@@ -52,7 +52,7 @@ export default class GestureControl extends Component {
         onResponderMove={this.onMove}
         animate={!!fromXY}
         tint={{r: 1.0, g: 1.0, b: 1.0, a: 1.0}}
-        scale={0.15}
+        scale={0.45}
         rotateX={rotateX}
         rotateZ={rotateZ}
         translateZ={-4}

@@ -185,7 +185,7 @@ class ServerCallbacks: public BLEServerCallbacks {
 void loop() {
   if(dev_state == 0){
     //initial setup
-    #ifdef DEBUG
+    #ifdef GYRODEBUG
       Serial.println("\nReading sensors for first time...");
     #endif
     tSelect(MAX_NUM_PPG);
@@ -195,7 +195,7 @@ void loop() {
   }
   if(dev_state == 1){
     //calculating offset stage
-    #ifdef DEBUG
+    #ifdef GYRODEBUG
         Serial.println("\nCalculating offsets...");
     #endif    
     calibration();
@@ -205,7 +205,7 @@ void loop() {
   if(dev_state == 2){
     //set the calculated offsets
     meansensors();
-    #ifdef DEBUG
+    #ifdef GYRODEBUG
       Serial.println("\nFINISHED!");
     #endif
     dev_state++;
@@ -247,12 +247,12 @@ void loop() {
                   }
                 }
 
-              Serial.print("IR =");
-              Serial.print(data_i);
-              Serial.print(", BPM=");
-              Serial.print(beatsPerMinute);
-              Serial.print(", Avg BPM=");
-              Serial.println(beatAvg);
+//              Serial.print("IR =");
+//              Serial.print(data_i);
+//              Serial.print(", BPM=");
+//              Serial.print(beatsPerMinute);
+//              Serial.print(", Avg BPM=");
+//              Serial.println(beatAvg);
             
             redChars[i]->setValue((uint32_t&)data_r);   
             irChars[i]->setValue((uint32_t&)data_i);    
@@ -403,7 +403,7 @@ void initBLE(char serverName []){
                                          );
   systemidChar->setValue(SYSTEM_ID);
   
-  channelService = ppgServer->createService(CHANNEL_SERV_UUID,MAX_CHAR_HANDLE);
+  channelService = ppgServer->createService(CHANNEL_SERV_UUID,MAX_CHAR_HANDLE,0);
 
   for(int i=0; i< NUM_PPG; i++){
     //local variables for UUID's needed per channel

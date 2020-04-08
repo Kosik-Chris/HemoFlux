@@ -27,7 +27,8 @@ export default class ModelView extends PureComponent {
   render() {
     return (
       <View style={styles.container}>
-        <View style={styles.header}>
+        <GestureControl/>
+        {/* <View style={styles.header}>
           {this.state.example && (
             <TouchableOpacity
               onPress={() => this.select()}
@@ -38,7 +39,7 @@ export default class ModelView extends PureComponent {
           <Text style={styles.headerTitle}>GLModelView Examples</Text>
         </View>
 
-        <View style={styles.body}>{this.renderContent()}</View>
+        <View style={styles.body}>{this.renderContent()}</View> */}
       </View>
     );
   }

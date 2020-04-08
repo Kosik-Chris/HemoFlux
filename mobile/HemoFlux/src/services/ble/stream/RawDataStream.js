@@ -18,6 +18,9 @@ import BLEconfig from '../../files/bleConfig';
 let r0,r1,r2,r3,r4,r5,r6;
 let i0,i1,i2,i3,i4,i5,i6;
 let g0,g1,g2,g3,g4,g5,g6;
+let r0subscribe, r1subscribe, r2subscribe, r3subscribe, r4subscribe, r5subscribe, r6subscribe;
+let i0subscribe, i1subscribe, i2subscribe, i3subscribe, i4subscribe, i5subscribe, i6subscribe;
+let g0subscribe, g1subscribe, g2subscribe, g3subscribe, g4subscribe, g5subscribe, g6subscribe;
 let renderCnt = 0;
 
 //colors used for channels
@@ -56,8 +59,8 @@ const colors = [
  * updateRate: HARDCODED from delay put into uC. Don't lower below 30, synchronize with uC tx delay
  * timeIndex: the number to display as x value data
  */
-let dataWidth = 75; 
-let updateRate = 30; 
+//let dataWidth = 10; 
+// let updateRate = 30; 
 let timeIndex = 0;
 
 /**
@@ -70,27 +73,27 @@ export default class RawDataStream extends PureComponent {
     super(props);
     this.state = {
       //the array of values for each channel
-      r0values: [{x: 0, y: 0}],
-      i0values: [{x: 0, y: 0}],
-      g0values: [{x: 0, y: 0}],
-      r1values: [{x: 0, y: 0}],
-      i1values: [{x: 0, y: 0}],
-      g1values: [{x: 0, y: 0}],
-      r2values: [{x: 0, y: 0}],
-      i2values: [{x: 0, y: 0}],
-      g2values: [{x: 0, y: 0}],
-      r3values: [{x: 0, y: 0}],
-      i3values: [{x: 0, y: 0}],
-      g3values: [{x: 0, y: 0}],
-      r4values: [{x: 0, y: 0}],
-      i4values: [{x: 0, y: 0}],
-      g4values: [{x: 0, y: 0}],
-      r5values: [{x: 0, y: 0}],
-      i5values: [{x: 0, y: 0}],
-      g5values: [{x: 0, y: 0}],
-      r6values: [{x: 0, y: 0}],
-      i6values: [{x: 0, y: 0}],
-      g6values: [{x: 0, y: 0}],
+      r0values: [{x: 0, y: 2200}],
+      i0values: [{x: 0, y: 1500}],
+      g0values: [{x: 0, y: 300}],
+      r1values: [{x: 0, y: 2200}],
+      i1values: [{x: 0, y: 1500}],
+      g1values: [{x: 0, y: 300}],
+      r2values: [{x: 0, y: 2200}],
+      i2values: [{x: 0, y: 1500}],
+      g2values: [{x: 0, y: 100}],
+      r3values: [{x: 0, y: 2200}],
+      i3values: [{x: 0, y: 1500}],
+      g3values: [{x: 0, y: 300}],
+      r4values: [{x: 0, y: 2200}],
+      i4values: [{x: 0, y: 1500}],
+      g4values: [{x: 0, y: 300}],
+      r5values: [{x: 0, y: 2200}],
+      i5values: [{x: 0, y: 1500}],
+      g5values: [{x: 0, y: 300}],
+      r6values: [{x: 0, y: 2200}],
+      i6values: [{x: 0, y: 1500}],
+      g6values: [{x: 0, y: 300}],
       marker: {
         enabled: true,
         digits: 2,
@@ -1425,10 +1428,10 @@ export default class RawDataStream extends PureComponent {
     if(this.props.device.name != null){
 
     this.subscribeToChannels();
-    if (this.state.r0values.length >= dataWidth) {
+    if (this.state.r0values.length >= this.props.dataWidth) {
       console.log("some mount error..");
     } 
-    if(this.state.r0values.length >= 1 && this.state.r0values.length < dataWidth && this.state.r0_val != null) {
+    if(this.state.r0values.length >= 1 && this.state.r0values.length < this.props.dataWidth && this.state.r0_val != null) {
         console.log("some mount error..");
     }
     if(this.state.r0values < 1 || this.state.r0_val == null){
@@ -1721,7 +1724,7 @@ export default class RawDataStream extends PureComponent {
     }
     //ms timer implementation
     this.interval = setInterval(() => {
-        timeIndex = timeIndex+updateRate;
+        timeIndex = timeIndex+this.props.updateRate;
         /**Only mount the channels that are present in the BLE broadcast/ configured!**/
         if(BLEconfig.deviceSetup.NUM_PPG == 1){
           this.setState({
@@ -1731,6 +1734,7 @@ export default class RawDataStream extends PureComponent {
           });
         }
         if(BLEconfig.deviceSetup.NUM_PPG == 2){
+          //console.log('r1: '+r1+' i1: '+i1+' g1: '+g1);
           this.setState({
               r0_val : r0,
               i0_val: i0,
@@ -1835,14 +1839,59 @@ export default class RawDataStream extends PureComponent {
               g6_val : g6,
           });
         }
-    }, updateRate);
+    }, this.props.updateRate);
     }
   }
   /**
-   * Called when component is removed
+   * Called when component is removed. Remove all subscriptions and Async tasks 
    */
   componentWillUnmount() {
-      clearInterval(this.interval);
+      clearInterval(this.interval); //clear update interval
+      //unsubscribe from channels
+    switch(BLEconfig.deviceSetup.NUM_PPG){
+      case 1:
+        r0subscribe.remove();i0subscribe.remove();g0subscribe.remove();
+      break;
+      case 2:
+        r0subscribe.remove();i0subscribe.remove();g0subscribe.remove();
+        r1subscribe.remove();i1subscribe.remove();g1subscribe.remove();
+      break;
+      case 3:
+        r0subscribe.remove();i0subscribe.remove();g0subscribe.remove();
+        r1subscribe.remove();i1subscribe.remove();g1subscribe.remove();
+        r2subscribe.remove();i2subscribe.remove();g2subscribe.remove();
+      break;
+      case 4:
+        r0subscribe.remove();i0subscribe.remove();g0subscribe.remove();
+        r1subscribe.remove();i1subscribe.remove();g1subscribe.remove();
+        r2subscribe.remove();i2subscribe.remove();g2subscribe.remove();
+        r3subscribe.remove();i3subscribe.remove();g3subscribe.remove();
+      break;
+      case 5:
+        r0subscribe.remove();i0subscribe.remove();g0subscribe.remove();
+        r1subscribe.remove();i1subscribe.remove();g1subscribe.remove();
+        r2subscribe.remove();i2subscribe.remove();g2subscribe.remove();
+        r3subscribe.remove();i3subscribe.remove();g3subscribe.remove();
+        r4subscribe.remove();i4subscribe.remove();g4subscribe.remove();
+      break;
+      case 6:
+        r0subscribe.remove();i0subscribe.remove();g0subscribe.remove();
+        r1subscribe.remove();i1subscribe.remove();g1subscribe.remove();
+        r2subscribe.remove();i2subscribe.remove();g2subscribe.remove();
+        r3subscribe.remove();i3subscribe.remove();g3subscribe.remove();
+        r4subscribe.remove();i4subscribe.remove();g4subscribe.remove();
+        r5subscribe.remove();i5subscribe.remove();g5subscribe.remove();
+      break;
+      case 7:
+        r0subscribe.remove();i0subscribe.remove();g0subscribe.remove();
+        r1subscribe.remove();i1subscribe.remove();g1subscribe.remove();
+        r2subscribe.remove();i2subscribe.remove();g2subscribe.remove();
+        r3subscribe.remove();i3subscribe.remove();g3subscribe.remove();
+        r4subscribe.remove();i4subscribe.remove();g4subscribe.remove();
+        r5subscribe.remove();i5subscribe.remove();g5subscribe.remove();
+        r6subscribe.remove();i6subscribe.remove();g6subscribe.remove();
+      break;
+    }
   }
 
 /**
@@ -1851,14 +1900,14 @@ export default class RawDataStream extends PureComponent {
   async subscribeToChannels(){
     await this.props.device.discoverAllServicesAndCharacteristics();
     if(BLEconfig.deviceSetup.NUM_PPG == 1){
-        let r0subscribe = await this.props.device.monitorCharacteristicForService(
+        r0subscribe = await this.props.device.monitorCharacteristicForService(
           BLEconfig.channelSID,
           BLEconfig.channelCID.r0,
           (error, chr) => {
             let basesixfour = chr.value;
             let basedec= getDecFrom64(basesixfour);
             r0 = basedec;
-              if(this.state.r0values.length >= dataWidth){
+              if(this.state.r0values.length >= this.props.dataWidth){
                   this.setState({
                     r0values: this.r0shiftData(this.state.r0values),
                   });
@@ -1871,14 +1920,14 @@ export default class RawDataStream extends PureComponent {
               }
             }
       ); //subscription to BLE char
-      let i0subscribe = await this.props.device.monitorCharacteristicForService(
+      i0subscribe = await this.props.device.monitorCharacteristicForService(
         BLEconfig.channelSID,
         BLEconfig.channelCID.i0,
           (error, chr) => {
             let basesixfour = chr.value;
             let basedec= getDecFrom64(basesixfour);
             i0 = basedec;
-              if(this.state.i0values.length >= dataWidth){
+              if(this.state.i0values.length >= this.props.dataWidth){
                   this.setState({
                     i0values: this.i0shiftData(this.state.i0values),
                   });
@@ -1891,14 +1940,14 @@ export default class RawDataStream extends PureComponent {
               }
           }
       ); //subscription to BLE char
-      let g0subscribe = await this.props.device.monitorCharacteristicForService(
+      g0subscribe = await this.props.device.monitorCharacteristicForService(
         BLEconfig.channelSID,
         BLEconfig.channelCID.g0,
           (error, chr) => {
             let basesixfour = chr.value;
             let basedec= getDecFrom64(basesixfour);
             g0 = basedec;
-                if(this.state.g0values.length >= dataWidth){
+                if(this.state.g0values.length >= this.props.dataWidth){
                     this.setState({
                       g0values: this.g0shiftData(this.state.g0values),
                     });
@@ -1913,14 +1962,14 @@ export default class RawDataStream extends PureComponent {
       ); //subscription to BLE char
     }
     if(BLEconfig.deviceSetup.NUM_PPG == 2){
-      let r0subscribe = await this.props.device.monitorCharacteristicForService(
+      r0subscribe = await this.props.device.monitorCharacteristicForService(
         BLEconfig.channelSID,
         BLEconfig.channelCID.r0,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           r0 = basedec;
-            if(this.state.r0values.length >= dataWidth){
+            if(this.state.r0values.length >= this.props.dataWidth){
                 this.setState({
                   r0values: this.r0shiftData(this.state.r0values),
                 });
@@ -1933,14 +1982,14 @@ export default class RawDataStream extends PureComponent {
             }
           }
     ); //subscription to BLE char
-    let i0subscribe = await this.props.device.monitorCharacteristicForService(
+    i0subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.i0,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           i0 = basedec;
-            if(this.state.i0values.length >= dataWidth){
+            if(this.state.i0values.length >= this.props.dataWidth){
                 this.setState({
                   i0values: this.i0shiftData(this.state.i0values),
                 });
@@ -1953,14 +2002,14 @@ export default class RawDataStream extends PureComponent {
             }
         }
     ); //subscription to BLE char
-    let g0subscribe = await this.props.device.monitorCharacteristicForService(
+    g0subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.g0,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           g0 = basedec;
-              if(this.state.g0values.length >= dataWidth){
+              if(this.state.g0values.length >= this.props.dataWidth){
                   this.setState({
                     g0values: this.g0shiftData(this.state.g0values),
                   });
@@ -1973,14 +2022,14 @@ export default class RawDataStream extends PureComponent {
               }
         }
     ); //subscription to BLE char
-    let r1subscribe = await device.monitorCharacteristicForService(
+    r1subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.r1,
        (error, chr) => {
          let basesixfour = chr.value;
          let basedec= getDecFrom64(basesixfour);
          r1 = basedec;
-          if(this.state.r1values.length >= dataWidth){
+          if(this.state.r1values.length >= this.props.dataWidth){
               this.setState({
                 r1values: this.r1shiftData(this.state.r1values),
               });
@@ -1994,14 +2043,14 @@ export default class RawDataStream extends PureComponent {
         }
   ); //subscription to BLE char
 
-    let i1subscribe = await device.monitorCharacteristicForService(
+    i1subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.i1,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           i1 = basedec;
-            if(this.state.i1values.length >= dataWidth){
+            if(this.state.i1values.length >= this.props.dataWidth){
                 this.setState({
                   i1values: this.i1shiftData(this.state.i1values),
                 });
@@ -2015,14 +2064,14 @@ export default class RawDataStream extends PureComponent {
         }
     ); //subscription to BLE char
 
-    let g1subscribe = await device.monitorCharacteristicForService(
+    g1subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.g1,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           g1 = basedec;
-              if(this.state.g1values.length >= dataWidth){
+              if(this.state.g1values.length >= this.props.dataWidth){
                   this.setState({
                     g1values: this.g1shiftData(this.state.g1values),
                   });
@@ -2037,14 +2086,14 @@ export default class RawDataStream extends PureComponent {
     ); //subscription to BLE char
     }
     if(BLEconfig.deviceSetup.NUM_PPG == 3){
-      let r0subscribe = await this.props.device.monitorCharacteristicForService(
+      r0subscribe = await this.props.device.monitorCharacteristicForService(
         BLEconfig.channelSID,
         BLEconfig.channelCID.r0,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           r0 = basedec;
-            if(this.state.r0values.length >= dataWidth){
+            if(this.state.r0values.length >= this.props.dataWidth){
                 this.setState({
                   r0values: this.r0shiftData(this.state.r0values),
                 });
@@ -2057,14 +2106,14 @@ export default class RawDataStream extends PureComponent {
             }
           }
     ); //subscription to BLE char
-    let i0subscribe = await this.props.device.monitorCharacteristicForService(
+    i0subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.i0,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           i0 = basedec;
-            if(this.state.i0values.length >= dataWidth){
+            if(this.state.i0values.length >= this.props.dataWidth){
                 this.setState({
                   i0values: this.i0shiftData(this.state.i0values),
                 });
@@ -2077,14 +2126,14 @@ export default class RawDataStream extends PureComponent {
             }
         }
     ); //subscription to BLE char
-    let g0subscribe = await this.props.device.monitorCharacteristicForService(
+    g0subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.g0,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           g0 = basedec;
-              if(this.state.g0values.length >= dataWidth){
+              if(this.state.g0values.length >= this.props.dataWidth){
                   this.setState({
                     g0values: this.g0shiftData(this.state.g0values),
                   });
@@ -2097,14 +2146,14 @@ export default class RawDataStream extends PureComponent {
               }
         }
     ); //subscription to BLE char
-    let r1subscribe = await device.monitorCharacteristicForService(
+    r1subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.r1,
        (error, chr) => {
          let basesixfour = chr.value;
          let basedec= getDecFrom64(basesixfour);
          r1 = basedec;
-          if(this.state.r1values.length >= dataWidth){
+          if(this.state.r1values.length >= this.props.dataWidth){
               this.setState({
                 r1values: this.r1shiftData(this.state.r1values),
               });
@@ -2118,14 +2167,14 @@ export default class RawDataStream extends PureComponent {
         }
   ); //subscription to BLE char
 
-    let i1subscribe = await device.monitorCharacteristicForService(
+    i1subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.i1,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           i1 = basedec;
-            if(this.state.i1values.length >= dataWidth){
+            if(this.state.i1values.length >= this.props.dataWidth){
                 this.setState({
                   i1values: this.i1shiftData(this.state.i1values),
                 });
@@ -2139,14 +2188,14 @@ export default class RawDataStream extends PureComponent {
         }
     ); //subscription to BLE char
 
-    let g1subscribe = await device.monitorCharacteristicForService(
+    g1subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.g1,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           g1 = basedec;
-              if(this.state.g1values.length >= dataWidth){
+              if(this.state.g1values.length >= this.props.dataWidth){
                   this.setState({
                     g1values: this.g1shiftData(this.state.g1values),
                   });
@@ -2159,14 +2208,14 @@ export default class RawDataStream extends PureComponent {
               }
         }
     ); //subscription to BLE char
-    let r2subscribe = await device.monitorCharacteristicForService(
+    r2subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.r2,
        (error, chr) => {
          let basesixfour = chr.value;
          let basedec= getDecFrom64(basesixfour);
          r2 = basedec;
-          if(this.state.r2values.length >= dataWidth){
+          if(this.state.r2values.length >= this.props.dataWidth){
               this.setState({
                 r2values: this.r2shiftData(this.state.r2values),
               });
@@ -2180,14 +2229,14 @@ export default class RawDataStream extends PureComponent {
         }
   ); //subscription to BLE char
 
-    let i2subscribe = await device.monitorCharacteristicForService(
+    i2subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.i2,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           i2 = basedec;
-            if(this.state.i2values.length >= dataWidth){
+            if(this.state.i2values.length >= this.props.dataWidth){
                 this.setState({
                   i2values: this.i2shiftData(this.state.i2values),
                 });
@@ -2201,14 +2250,14 @@ export default class RawDataStream extends PureComponent {
         }
     ); //subscription to BLE char
 
-    let g2subscribe = await device.monitorCharacteristicForService(
+    g2subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.g2,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           g2 = basedec;
-              if(this.state.g2values.length >= dataWidth){
+              if(this.state.g2values.length >= this.props.dataWidth){
                   this.setState({
                     g2values: this.g2shiftData(this.state.g2values),
                   });
@@ -2223,14 +2272,14 @@ export default class RawDataStream extends PureComponent {
     ); //subscription to BLE char
     }
     if(BLEconfig.deviceSetup.NUM_PPG == 4){
-      let r0subscribe = await this.props.device.monitorCharacteristicForService(
+      r0subscribe = await this.props.device.monitorCharacteristicForService(
         BLEconfig.channelSID,
         BLEconfig.channelCID.r0,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           r0 = basedec;
-            if(this.state.r0values.length >= dataWidth){
+            if(this.state.r0values.length >= this.props.dataWidth){
                 this.setState({
                   r0values: this.r0shiftData(this.state.r0values),
                 });
@@ -2243,14 +2292,14 @@ export default class RawDataStream extends PureComponent {
             }
           }
     ); //subscription to BLE char
-    let i0subscribe = await this.props.device.monitorCharacteristicForService(
+    i0subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.i0,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           i0 = basedec;
-            if(this.state.i0values.length >= dataWidth){
+            if(this.state.i0values.length >= this.props.dataWidth){
                 this.setState({
                   i0values: this.i0shiftData(this.state.i0values),
                 });
@@ -2263,14 +2312,14 @@ export default class RawDataStream extends PureComponent {
             }
         }
     ); //subscription to BLE char
-    let g0subscribe = await this.props.device.monitorCharacteristicForService(
+    g0subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.g0,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           g0 = basedec;
-              if(this.state.g0values.length >= dataWidth){
+              if(this.state.g0values.length >= this.props.dataWidth){
                   this.setState({
                     g0values: this.g0shiftData(this.state.g0values),
                   });
@@ -2283,14 +2332,14 @@ export default class RawDataStream extends PureComponent {
               }
         }
     ); //subscription to BLE char
-    let r1subscribe = await device.monitorCharacteristicForService(
+    r1subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.r1,
        (error, chr) => {
          let basesixfour = chr.value;
          let basedec= getDecFrom64(basesixfour);
          r1 = basedec;
-          if(this.state.r1values.length >= dataWidth){
+          if(this.state.r1values.length >= this.props.dataWidth){
               this.setState({
                 r1values: this.r1shiftData(this.state.r1values),
               });
@@ -2304,14 +2353,14 @@ export default class RawDataStream extends PureComponent {
         }
   ); //subscription to BLE char
 
-    let i1subscribe = await device.monitorCharacteristicForService(
+    i1subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.i1,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           i1 = basedec;
-            if(this.state.i1values.length >= dataWidth){
+            if(this.state.i1values.length >= this.props.dataWidth){
                 this.setState({
                   i1values: this.i1shiftData(this.state.i1values),
                 });
@@ -2325,14 +2374,14 @@ export default class RawDataStream extends PureComponent {
         }
     ); //subscription to BLE char
 
-    let g1subscribe = await device.monitorCharacteristicForService(
+    g1subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.g1,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           g1 = basedec;
-              if(this.state.g1values.length >= dataWidth){
+              if(this.state.g1values.length >= this.props.dataWidth){
                   this.setState({
                     g1values: this.g1shiftData(this.state.g1values),
                   });
@@ -2345,14 +2394,14 @@ export default class RawDataStream extends PureComponent {
               }
         }
     ); //subscription to BLE char
-    let r2subscribe = await device.monitorCharacteristicForService(
+    r2subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.r2,
        (error, chr) => {
          let basesixfour = chr.value;
          let basedec= getDecFrom64(basesixfour);
          r2 = basedec;
-          if(this.state.r2values.length >= dataWidth){
+          if(this.state.r2values.length >= this.props.dataWidth){
               this.setState({
                 r2values: this.r2shiftData(this.state.r2values),
               });
@@ -2366,14 +2415,14 @@ export default class RawDataStream extends PureComponent {
         }
   ); //subscription to BLE char
 
-    let i2subscribe = await device.monitorCharacteristicForService(
+    i2subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.i2,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           i2 = basedec;
-            if(this.state.i2values.length >= dataWidth){
+            if(this.state.i2values.length >= this.props.dataWidth){
                 this.setState({
                   i2values: this.i2shiftData(this.state.i2values),
                 });
@@ -2387,14 +2436,14 @@ export default class RawDataStream extends PureComponent {
         }
     ); //subscription to BLE char
 
-    let g2subscribe = await device.monitorCharacteristicForService(
+    g2subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.g2,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           g2 = basedec;
-              if(this.state.g2values.length >= dataWidth){
+              if(this.state.g2values.length >= this.props.dataWidth){
                   this.setState({
                     g2values: this.g2shiftData(this.state.g2values),
                   });
@@ -2407,14 +2456,14 @@ export default class RawDataStream extends PureComponent {
               }
         }
     ); //subscription to BLE char
-    let r3subscribe = await device.monitorCharacteristicForService(
+    r3subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.r3,
        (error, chr) => {
          let basesixfour = chr.value;
          let basedec= getDecFrom64(basesixfour);
          r3 = basedec;
-          if(this.state.r3values.length >= dataWidth){
+          if(this.state.r3values.length >= this.props.dataWidth){
               this.setState({
                 r3values: this.r3shiftData(this.state.r3values),
               });
@@ -2428,14 +2477,14 @@ export default class RawDataStream extends PureComponent {
         }
   ); //subscription to BLE char
 
-    let i3subscribe = await device.monitorCharacteristicForService(
+    i3subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.i3,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           i3 = basedec;
-            if(this.state.i3values.length >= dataWidth){
+            if(this.state.i3values.length >= this.props.dataWidth){
                 this.setState({
                   i3values: this.i3shiftData(this.state.i3values),
                 });
@@ -2449,14 +2498,14 @@ export default class RawDataStream extends PureComponent {
         }
     ); //subscription to BLE char
 
-    let g3subscribe = await device.monitorCharacteristicForService(
+    g3subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.g3,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           g3 = basedec;
-              if(this.state.g3values.length >= dataWidth){
+              if(this.state.g3values.length >= this.props.dataWidth){
                   this.setState({
                     g3values: this.g3shiftData(this.state.g3values),
                   });
@@ -2471,14 +2520,14 @@ export default class RawDataStream extends PureComponent {
     ); //subscription to BLE char
     }
     if(BLEconfig.deviceSetup.NUM_PPG == 5){
-      let r0subscribe = await this.props.device.monitorCharacteristicForService(
+      r0subscribe = await this.props.device.monitorCharacteristicForService(
         BLEconfig.channelSID,
         BLEconfig.channelCID.r0,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           r0 = basedec;
-            if(this.state.r0values.length >= dataWidth){
+            if(this.state.r0values.length >= this.props.dataWidth){
                 this.setState({
                   r0values: this.r0shiftData(this.state.r0values),
                 });
@@ -2491,14 +2540,14 @@ export default class RawDataStream extends PureComponent {
             }
           }
     ); //subscription to BLE char
-    let i0subscribe = await this.props.device.monitorCharacteristicForService(
+    i0subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.i0,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           i0 = basedec;
-            if(this.state.i0values.length >= dataWidth){
+            if(this.state.i0values.length >= this.props.dataWidth){
                 this.setState({
                   i0values: this.i0shiftData(this.state.i0values),
                 });
@@ -2511,14 +2560,14 @@ export default class RawDataStream extends PureComponent {
             }
         }
     ); //subscription to BLE char
-    let g0subscribe = await this.props.device.monitorCharacteristicForService(
+    g0subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.g0,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           g0 = basedec;
-              if(this.state.g0values.length >= dataWidth){
+              if(this.state.g0values.length >= this.props.dataWidth){
                   this.setState({
                     g0values: this.g0shiftData(this.state.g0values),
                   });
@@ -2531,14 +2580,14 @@ export default class RawDataStream extends PureComponent {
               }
         }
     ); //subscription to BLE char
-    let r1subscribe = await device.monitorCharacteristicForService(
+    r1subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.r1,
        (error, chr) => {
          let basesixfour = chr.value;
          let basedec= getDecFrom64(basesixfour);
          r1 = basedec;
-          if(this.state.r1values.length >= dataWidth){
+          if(this.state.r1values.length >= this.props.dataWidth){
               this.setState({
                 r1values: this.r1shiftData(this.state.r1values),
               });
@@ -2552,14 +2601,14 @@ export default class RawDataStream extends PureComponent {
         }
   ); //subscription to BLE char
 
-    let i1subscribe = await device.monitorCharacteristicForService(
+    i1subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.i1,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           i1 = basedec;
-            if(this.state.i1values.length >= dataWidth){
+            if(this.state.i1values.length >= this.props.dataWidth){
                 this.setState({
                   i1values: this.i1shiftData(this.state.i1values),
                 });
@@ -2573,14 +2622,14 @@ export default class RawDataStream extends PureComponent {
         }
     ); //subscription to BLE char
 
-    let g1subscribe = await device.monitorCharacteristicForService(
+    g1subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.g1,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           g1 = basedec;
-              if(this.state.g1values.length >= dataWidth){
+              if(this.state.g1values.length >= this.props.dataWidth){
                   this.setState({
                     g1values: this.g1shiftData(this.state.g1values),
                   });
@@ -2593,14 +2642,14 @@ export default class RawDataStream extends PureComponent {
               }
         }
     ); //subscription to BLE char
-    let r2subscribe = await device.monitorCharacteristicForService(
+    r2subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.r2,
        (error, chr) => {
          let basesixfour = chr.value;
          let basedec= getDecFrom64(basesixfour);
          r2 = basedec;
-          if(this.state.r2values.length >= dataWidth){
+          if(this.state.r2values.length >= this.props.dataWidth){
               this.setState({
                 r2values: this.r2shiftData(this.state.r2values),
               });
@@ -2614,14 +2663,14 @@ export default class RawDataStream extends PureComponent {
         }
   ); //subscription to BLE char
 
-    let i2subscribe = await device.monitorCharacteristicForService(
+    i2subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.i2,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           i2 = basedec;
-            if(this.state.i2values.length >= dataWidth){
+            if(this.state.i2values.length >= this.props.dataWidth){
                 this.setState({
                   i2values: this.i2shiftData(this.state.i2values),
                 });
@@ -2635,14 +2684,14 @@ export default class RawDataStream extends PureComponent {
         }
     ); //subscription to BLE char
 
-    let g2subscribe = await device.monitorCharacteristicForService(
+    g2subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.g2,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           g2 = basedec;
-              if(this.state.g2values.length >= dataWidth){
+              if(this.state.g2values.length >= this.props.dataWidth){
                   this.setState({
                     g2values: this.g2shiftData(this.state.g2values),
                   });
@@ -2655,14 +2704,14 @@ export default class RawDataStream extends PureComponent {
               }
         }
     ); //subscription to BLE char
-    let r3subscribe = await device.monitorCharacteristicForService(
+    r3subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.r3,
        (error, chr) => {
          let basesixfour = chr.value;
          let basedec= getDecFrom64(basesixfour);
          r3 = basedec;
-          if(this.state.r3values.length >= dataWidth){
+          if(this.state.r3values.length >= this.props.dataWidth){
               this.setState({
                 r3values: this.r3shiftData(this.state.r3values),
               });
@@ -2676,14 +2725,14 @@ export default class RawDataStream extends PureComponent {
         }
   ); //subscription to BLE char
 
-    let i3subscribe = await device.monitorCharacteristicForService(
+    i3subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.i3,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           i3 = basedec;
-            if(this.state.i3values.length >= dataWidth){
+            if(this.state.i3values.length >= this.props.dataWidth){
                 this.setState({
                   i3values: this.i3shiftData(this.state.i3values),
                 });
@@ -2697,14 +2746,14 @@ export default class RawDataStream extends PureComponent {
         }
     ); //subscription to BLE char
 
-    let g3subscribe = await device.monitorCharacteristicForService(
+    g3subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.g3,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           g3 = basedec;
-              if(this.state.g3values.length >= dataWidth){
+              if(this.state.g3values.length >= this.props.dataWidth){
                   this.setState({
                     g3values: this.g3shiftData(this.state.g3values),
                   });
@@ -2717,14 +2766,14 @@ export default class RawDataStream extends PureComponent {
               }
         }
     ); //subscription to BLE char
-    let r4subscribe = await device.monitorCharacteristicForService(
+    r4subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.r4,
        (error, chr) => {
          let basesixfour = chr.value;
          let basedec= getDecFrom64(basesixfour);
          r4 = basedec;
-          if(this.state.r4values.length >= dataWidth){
+          if(this.state.r4values.length >= this.props.dataWidth){
               this.setState({
                 r4values: this.r4shiftData(this.state.r4values),
               });
@@ -2738,14 +2787,14 @@ export default class RawDataStream extends PureComponent {
         }
   ); //subscription to BLE char
 
-    let i4subscribe = await device.monitorCharacteristicForService(
+    i4subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.i4,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           i4 = basedec;
-            if(this.state.i4values.length >= dataWidth){
+            if(this.state.i4values.length >= this.props.dataWidth){
                 this.setState({
                   i4values: this.i4shiftData(this.state.i4values),
                 });
@@ -2759,14 +2808,14 @@ export default class RawDataStream extends PureComponent {
         }
     ); //subscription to BLE char
 
-    let g4subscribe = await device.monitorCharacteristicForService(
+    g4subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.g4,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           g4 = basedec;
-              if(this.state.g4values.length >= dataWidth){
+              if(this.state.g4values.length >= this.props.dataWidth){
                   this.setState({
                     g4values: this.g4shiftData(this.state.g4values),
                   });
@@ -2781,14 +2830,14 @@ export default class RawDataStream extends PureComponent {
     ); //subscription to BLE char
     }
     if(BLEconfig.deviceSetup.NUM_PPG == 6){
-      let r0subscribe = await this.props.device.monitorCharacteristicForService(
+      r0subscribe = await this.props.device.monitorCharacteristicForService(
         BLEconfig.channelSID,
         BLEconfig.channelCID.r0,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           r0 = basedec;
-            if(this.state.r0values.length >= dataWidth){
+            if(this.state.r0values.length >= this.props.dataWidth){
                 this.setState({
                   r0values: this.r0shiftData(this.state.r0values),
                 });
@@ -2801,14 +2850,14 @@ export default class RawDataStream extends PureComponent {
             }
           }
     ); //subscription to BLE char
-    let i0subscribe = await this.props.device.monitorCharacteristicForService(
+    i0subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.i0,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           i0 = basedec;
-            if(this.state.i0values.length >= dataWidth){
+            if(this.state.i0values.length >= this.props.dataWidth){
                 this.setState({
                   i0values: this.i0shiftData(this.state.i0values),
                 });
@@ -2821,14 +2870,14 @@ export default class RawDataStream extends PureComponent {
             }
         }
     ); //subscription to BLE char
-    let g0subscribe = await this.props.device.monitorCharacteristicForService(
+    g0subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.g0,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           g0 = basedec;
-              if(this.state.g0values.length >= dataWidth){
+              if(this.state.g0values.length >= this.props.dataWidth){
                   this.setState({
                     g0values: this.g0shiftData(this.state.g0values),
                   });
@@ -2841,14 +2890,14 @@ export default class RawDataStream extends PureComponent {
               }
         }
     ); //subscription to BLE char
-    let r1subscribe = await device.monitorCharacteristicForService(
+    r1subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.r1,
        (error, chr) => {
          let basesixfour = chr.value;
          let basedec= getDecFrom64(basesixfour);
          r1 = basedec;
-          if(this.state.r1values.length >= dataWidth){
+          if(this.state.r1values.length >= this.props.dataWidth){
               this.setState({
                 r1values: this.r1shiftData(this.state.r1values),
               });
@@ -2862,14 +2911,14 @@ export default class RawDataStream extends PureComponent {
         }
   ); //subscription to BLE char
 
-    let i1subscribe = await device.monitorCharacteristicForService(
+    i1subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.i1,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           i1 = basedec;
-            if(this.state.i1values.length >= dataWidth){
+            if(this.state.i1values.length >= this.props.dataWidth){
                 this.setState({
                   i1values: this.i1shiftData(this.state.i1values),
                 });
@@ -2883,14 +2932,14 @@ export default class RawDataStream extends PureComponent {
         }
     ); //subscription to BLE char
 
-    let g1subscribe = await device.monitorCharacteristicForService(
+    g1subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.g1,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           g1 = basedec;
-              if(this.state.g1values.length >= dataWidth){
+              if(this.state.g1values.length >= this.props.dataWidth){
                   this.setState({
                     g1values: this.g1shiftData(this.state.g1values),
                   });
@@ -2903,14 +2952,14 @@ export default class RawDataStream extends PureComponent {
               }
         }
     ); //subscription to BLE char
-    let r2subscribe = await device.monitorCharacteristicForService(
+    r2subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.r2,
        (error, chr) => {
          let basesixfour = chr.value;
          let basedec= getDecFrom64(basesixfour);
          r2 = basedec;
-          if(this.state.r2values.length >= dataWidth){
+          if(this.state.r2values.length >= this.props.dataWidth){
               this.setState({
                 r2values: this.r2shiftData(this.state.r2values),
               });
@@ -2924,14 +2973,14 @@ export default class RawDataStream extends PureComponent {
         }
   ); //subscription to BLE char
 
-    let i2subscribe = await device.monitorCharacteristicForService(
+    i2subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.i2,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           i2 = basedec;
-            if(this.state.i2values.length >= dataWidth){
+            if(this.state.i2values.length >= this.props.dataWidth){
                 this.setState({
                   i2values: this.i2shiftData(this.state.i2values),
                 });
@@ -2945,14 +2994,14 @@ export default class RawDataStream extends PureComponent {
         }
     ); //subscription to BLE char
 
-    let g2subscribe = await device.monitorCharacteristicForService(
+    g2subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.g2,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           g2 = basedec;
-              if(this.state.g2values.length >= dataWidth){
+              if(this.state.g2values.length >= this.props.dataWidth){
                   this.setState({
                     g2values: this.g2shiftData(this.state.g2values),
                   });
@@ -2965,14 +3014,14 @@ export default class RawDataStream extends PureComponent {
               }
         }
     ); //subscription to BLE char
-    let r3subscribe = await device.monitorCharacteristicForService(
+    r3subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.r3,
        (error, chr) => {
          let basesixfour = chr.value;
          let basedec= getDecFrom64(basesixfour);
          r3 = basedec;
-          if(this.state.r3values.length >= dataWidth){
+          if(this.state.r3values.length >= this.props.dataWidth){
               this.setState({
                 r3values: this.r3shiftData(this.state.r3values),
               });
@@ -2986,14 +3035,14 @@ export default class RawDataStream extends PureComponent {
         }
   ); //subscription to BLE char
 
-    let i3subscribe = await device.monitorCharacteristicForService(
+    i3subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.i3,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           i3 = basedec;
-            if(this.state.i3values.length >= dataWidth){
+            if(this.state.i3values.length >= this.props.dataWidth){
                 this.setState({
                   i3values: this.i3shiftData(this.state.i3values),
                 });
@@ -3007,14 +3056,14 @@ export default class RawDataStream extends PureComponent {
         }
     ); //subscription to BLE char
 
-    let g3subscribe = await device.monitorCharacteristicForService(
+    g3subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.g3,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           g3 = basedec;
-              if(this.state.g3values.length >= dataWidth){
+              if(this.state.g3values.length >= this.props.dataWidth){
                   this.setState({
                     g3values: this.g3shiftData(this.state.g3values),
                   });
@@ -3027,14 +3076,14 @@ export default class RawDataStream extends PureComponent {
               }
         }
     ); //subscription to BLE char
-    let r4subscribe = await device.monitorCharacteristicForService(
+    r4subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.r4,
        (error, chr) => {
          let basesixfour = chr.value;
          let basedec= getDecFrom64(basesixfour);
          r4 = basedec;
-          if(this.state.r4values.length >= dataWidth){
+          if(this.state.r4values.length >= this.props.dataWidth){
               this.setState({
                 r4values: this.r4shiftData(this.state.r4values),
               });
@@ -3048,14 +3097,14 @@ export default class RawDataStream extends PureComponent {
         }
   ); //subscription to BLE char
 
-    let i4subscribe = await device.monitorCharacteristicForService(
+    i4subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.i4,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           i4 = basedec;
-            if(this.state.i4values.length >= dataWidth){
+            if(this.state.i4values.length >= this.props.dataWidth){
                 this.setState({
                   i4values: this.i4shiftData(this.state.i4values),
                 });
@@ -3069,14 +3118,14 @@ export default class RawDataStream extends PureComponent {
         }
     ); //subscription to BLE char
 
-    let g4subscribe = await device.monitorCharacteristicForService(
+    g4subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.g4,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           g4 = basedec;
-              if(this.state.g4values.length >= dataWidth){
+              if(this.state.g4values.length >= this.props.dataWidth){
                   this.setState({
                     g4values: this.g4shiftData(this.state.g4values),
                   });
@@ -3089,14 +3138,14 @@ export default class RawDataStream extends PureComponent {
               }
         }
     ); //subscription to BLE char
-    let r5subscribe = await device.monitorCharacteristicForService(
+    r5subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.r5,
        (error, chr) => {
          let basesixfour = chr.value;
          let basedec= getDecFrom64(basesixfour);
          r5 = basedec;
-          if(this.state.r5values.length >= dataWidth){
+          if(this.state.r5values.length >= this.props.dataWidth){
               this.setState({
                 r5values: this.r5shiftData(this.state.r5values),
               });
@@ -3110,14 +3159,14 @@ export default class RawDataStream extends PureComponent {
         }
   ); //subscription to BLE char
 
-    let i5subscribe = await device.monitorCharacteristicForService(
+    i5subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.i5,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           i5 = basedec;
-            if(this.state.i5values.length >= dataWidth){
+            if(this.state.i5values.length >= this.props.dataWidth){
                 this.setState({
                   i5values: this.i5shiftData(this.state.i5values),
                 });
@@ -3131,14 +3180,14 @@ export default class RawDataStream extends PureComponent {
         }
     ); //subscription to BLE char
 
-    let g5subscribe = await device.monitorCharacteristicForService(
+    g5subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.g5,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           g5 = basedec;
-              if(this.state.g5values.length >= dataWidth){
+              if(this.state.g5values.length >= this.props.dataWidth){
                   this.setState({
                     g5values: this.g5shiftData(this.state.g5values),
                   });
@@ -3153,14 +3202,14 @@ export default class RawDataStream extends PureComponent {
     ); //subscription to BLE char
     }
     if(BLEconfig.deviceSetup.NUM_PPG == 7){
-      let r0subscribe = await this.props.device.monitorCharacteristicForService(
+      r0subscribe = await this.props.device.monitorCharacteristicForService(
         BLEconfig.channelSID,
         BLEconfig.channelCID.r0,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           r0 = basedec;
-            if(this.state.r0values.length >= dataWidth){
+            if(this.state.r0values.length >= this.props.dataWidth){
                 this.setState({
                   r0values: this.r0shiftData(this.state.r0values),
                 });
@@ -3173,14 +3222,14 @@ export default class RawDataStream extends PureComponent {
             }
           }
     ); //subscription to BLE char
-    let i0subscribe = await this.props.device.monitorCharacteristicForService(
+    i0subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.i0,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           i0 = basedec;
-            if(this.state.i0values.length >= dataWidth){
+            if(this.state.i0values.length >= this.props.dataWidth){
                 this.setState({
                   i0values: this.i0shiftData(this.state.i0values),
                 });
@@ -3193,14 +3242,14 @@ export default class RawDataStream extends PureComponent {
             }
         }
     ); //subscription to BLE char
-    let g0subscribe = await this.props.device.monitorCharacteristicForService(
+    g0subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.g0,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           g0 = basedec;
-              if(this.state.g0values.length >= dataWidth){
+              if(this.state.g0values.length >= this.props.dataWidth){
                   this.setState({
                     g0values: this.g0shiftData(this.state.g0values),
                   });
@@ -3213,14 +3262,14 @@ export default class RawDataStream extends PureComponent {
               }
         }
     ); //subscription to BLE char
-    let r1subscribe = await device.monitorCharacteristicForService(
+    r1subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.r1,
        (error, chr) => {
          let basesixfour = chr.value;
          let basedec= getDecFrom64(basesixfour);
          r1 = basedec;
-          if(this.state.r1values.length >= dataWidth){
+          if(this.state.r1values.length >= this.props.dataWidth){
               this.setState({
                 r1values: this.r1shiftData(this.state.r1values),
               });
@@ -3234,14 +3283,14 @@ export default class RawDataStream extends PureComponent {
         }
   ); //subscription to BLE char
 
-    let i1subscribe = await device.monitorCharacteristicForService(
+    i1subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.i1,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           i1 = basedec;
-            if(this.state.i1values.length >= dataWidth){
+            if(this.state.i1values.length >= this.props.dataWidth){
                 this.setState({
                   i1values: this.i1shiftData(this.state.i1values),
                 });
@@ -3255,14 +3304,14 @@ export default class RawDataStream extends PureComponent {
         }
     ); //subscription to BLE char
 
-    let g1subscribe = await device.monitorCharacteristicForService(
+    g1subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.g1,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           g1 = basedec;
-              if(this.state.g1values.length >= dataWidth){
+              if(this.state.g1values.length >= this.props.dataWidth){
                   this.setState({
                     g1values: this.g1shiftData(this.state.g1values),
                   });
@@ -3275,14 +3324,14 @@ export default class RawDataStream extends PureComponent {
               }
         }
     ); //subscription to BLE char
-    let r2subscribe = await device.monitorCharacteristicForService(
+    r2subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.r2,
        (error, chr) => {
          let basesixfour = chr.value;
          let basedec= getDecFrom64(basesixfour);
          r2 = basedec;
-          if(this.state.r2values.length >= dataWidth){
+          if(this.state.r2values.length >= this.props.dataWidth){
               this.setState({
                 r2values: this.r2shiftData(this.state.r2values),
               });
@@ -3296,14 +3345,14 @@ export default class RawDataStream extends PureComponent {
         }
   ); //subscription to BLE char
 
-    let i2subscribe = await device.monitorCharacteristicForService(
+    i2subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.i2,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           i2 = basedec;
-            if(this.state.i2values.length >= dataWidth){
+            if(this.state.i2values.length >= this.props.dataWidth){
                 this.setState({
                   i2values: this.i2shiftData(this.state.i2values),
                 });
@@ -3317,14 +3366,14 @@ export default class RawDataStream extends PureComponent {
         }
     ); //subscription to BLE char
 
-    let g2subscribe = await device.monitorCharacteristicForService(
+    g2subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.g2,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           g2 = basedec;
-              if(this.state.g2values.length >= dataWidth){
+              if(this.state.g2values.length >= this.props.dataWidth){
                   this.setState({
                     g2values: this.g2shiftData(this.state.g2values),
                   });
@@ -3337,14 +3386,14 @@ export default class RawDataStream extends PureComponent {
               }
         }
     ); //subscription to BLE char
-    let r3subscribe = await device.monitorCharacteristicForService(
+    r3subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.r3,
        (error, chr) => {
          let basesixfour = chr.value;
          let basedec= getDecFrom64(basesixfour);
          r3 = basedec;
-          if(this.state.r3values.length >= dataWidth){
+          if(this.state.r3values.length >= this.props.dataWidth){
               this.setState({
                 r3values: this.r3shiftData(this.state.r3values),
               });
@@ -3358,14 +3407,14 @@ export default class RawDataStream extends PureComponent {
         }
   ); //subscription to BLE char
 
-    let i3subscribe = await device.monitorCharacteristicForService(
+    i3subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.i3,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           i3 = basedec;
-            if(this.state.i3values.length >= dataWidth){
+            if(this.state.i3values.length >= this.props.dataWidth){
                 this.setState({
                   i3values: this.i3shiftData(this.state.i3values),
                 });
@@ -3379,14 +3428,14 @@ export default class RawDataStream extends PureComponent {
         }
     ); //subscription to BLE char
 
-    let g3subscribe = await device.monitorCharacteristicForService(
+    g3subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.g3,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           g3 = basedec;
-              if(this.state.g3values.length >= dataWidth){
+              if(this.state.g3values.length >= this.props.dataWidth){
                   this.setState({
                     g3values: this.g3shiftData(this.state.g3values),
                   });
@@ -3399,14 +3448,14 @@ export default class RawDataStream extends PureComponent {
               }
         }
     ); //subscription to BLE char
-    let r4subscribe = await device.monitorCharacteristicForService(
+    r4subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.r4,
        (error, chr) => {
          let basesixfour = chr.value;
          let basedec= getDecFrom64(basesixfour);
          r4 = basedec;
-          if(this.state.r4values.length >= dataWidth){
+          if(this.state.r4values.length >= this.props.dataWidth){
               this.setState({
                 r4values: this.r4shiftData(this.state.r4values),
               });
@@ -3420,14 +3469,14 @@ export default class RawDataStream extends PureComponent {
         }
   ); //subscription to BLE char
 
-    let i4subscribe = await device.monitorCharacteristicForService(
+    i4subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.i4,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           i4 = basedec;
-            if(this.state.i4values.length >= dataWidth){
+            if(this.state.i4values.length >= this.props.dataWidth){
                 this.setState({
                   i4values: this.i4shiftData(this.state.i4values),
                 });
@@ -3441,14 +3490,14 @@ export default class RawDataStream extends PureComponent {
         }
     ); //subscription to BLE char
 
-    let g4subscribe = await device.monitorCharacteristicForService(
+    g4subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.g4,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           g4 = basedec;
-              if(this.state.g4values.length >= dataWidth){
+              if(this.state.g4values.length >= this.props.dataWidth){
                   this.setState({
                     g4values: this.g4shiftData(this.state.g4values),
                   });
@@ -3461,14 +3510,14 @@ export default class RawDataStream extends PureComponent {
               }
         }
     ); //subscription to BLE char
-    let r5subscribe = await device.monitorCharacteristicForService(
+    r5subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.r5,
        (error, chr) => {
          let basesixfour = chr.value;
          let basedec= getDecFrom64(basesixfour);
          r5 = basedec;
-          if(this.state.r5values.length >= dataWidth){
+          if(this.state.r5values.length >= this.props.dataWidth){
               this.setState({
                 r5values: this.r5shiftData(this.state.r5values),
               });
@@ -3482,14 +3531,14 @@ export default class RawDataStream extends PureComponent {
         }
   ); //subscription to BLE char
 
-    let i5subscribe = await device.monitorCharacteristicForService(
+    i5subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.i5,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           i5 = basedec;
-            if(this.state.i5values.length >= dataWidth){
+            if(this.state.i5values.length >= this.props.dataWidth){
                 this.setState({
                   i5values: this.i5shiftData(this.state.i5values),
                 });
@@ -3503,14 +3552,14 @@ export default class RawDataStream extends PureComponent {
         }
     ); //subscription to BLE char
 
-    let g5subscribe = await device.monitorCharacteristicForService(
+    g5subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.g5,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           g5 = basedec;
-              if(this.state.g5values.length >= dataWidth){
+              if(this.state.g5values.length >= this.props.dataWidth){
                   this.setState({
                     g5values: this.g5shiftData(this.state.g5values),
                   });
@@ -3523,14 +3572,14 @@ export default class RawDataStream extends PureComponent {
               }
         }
     ); //subscription to BLE char
-    let r6subscribe = await device.monitorCharacteristicForService(
+    r6subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.r6,
        (error, chr) => {
          let basesixfour = chr.value;
          let basedec= getDecFrom64(basesixfour);
          r6 = basedec;
-          if(this.state.r6values.length >= dataWidth){
+          if(this.state.r6values.length >= this.props.dataWidth){
               this.setState({
                 r6values: this.r6shiftData(this.state.r6values),
               });
@@ -3544,14 +3593,14 @@ export default class RawDataStream extends PureComponent {
         }
   ); //subscription to BLE char
 
-    let i6subscribe = await device.monitorCharacteristicForService(
+    i6subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.i6,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           i6 = basedec;
-            if(this.state.i6values.length >= dataWidth){
+            if(this.state.i6values.length >= this.props.dataWidth){
                 this.setState({
                   i6values: this.i6shiftData(this.state.i6values),
                 });
@@ -3565,14 +3614,14 @@ export default class RawDataStream extends PureComponent {
         }
     ); //subscription to BLE char
 
-    let g6subscribe = await device.monitorCharacteristicForService(
+    g6subscribe = await this.props.device.monitorCharacteristicForService(
       BLEconfig.channelSID,
       BLEconfig.channelCID.g6,
         (error, chr) => {
           let basesixfour = chr.value;
           let basedec= getDecFrom64(basesixfour);
           g6 = basedec;
-              if(this.state.g6values.length >= dataWidth){
+              if(this.state.g6values.length >= this.props.dataWidth){
                   this.setState({
                     g6values: this.g6shiftData(this.state.g6values),
                   });
@@ -3586,9 +3635,6 @@ export default class RawDataStream extends PureComponent {
         }
     ); //subscription to BLE char
     }
-
-    //TODO
-    //handle removing subscriptions etc.
   }
 
   
@@ -3605,9 +3651,8 @@ export default class RawDataStream extends PureComponent {
       r6values,i6values,g6values);
     if(this.state.r0_val != null){
       return (
-        <View style={styles.body}>
-          <Text style={styles.graphTitle}>Raw Channel Data</Text>
-          <View style={styles.graph}>
+        // <View style={styles.body}>
+          // <Text style={styles.graphTitle}>Raw Channel Data</Text>
               <LineChart
                 data={config.data}
                 xAxis={config.xAxis}
@@ -3615,19 +3660,18 @@ export default class RawDataStream extends PureComponent {
                 marker={this.state.marker}
                 ref="rawChart"
               />
-          </View>
-        </View>
+        // </View>
       );
     }
     else{
       return(
-        <View style={styles.body}>
-        <View style={styles.headerRow}>
+        // <View style={styles.body}>
+        // <View style={styles.headerRow}>
           <View style={styles.rowItemBold}>
             <Text>loading...</Text>
           </View>
-        </View>
-        </View>
+        // </View>
+        // </View>
       );
     }
   }
@@ -3645,10 +3689,6 @@ const styles = StyleSheet.create({
       backgroundColor: '#FFFFFF',
       alignItems: 'flex-start',
       flexDirection: 'column',
-      height: '100%'
-    },
-    graph: {
-      width: '100%',
       height: '100%'
     },
     graphTitle: {
