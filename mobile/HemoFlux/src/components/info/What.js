@@ -13,20 +13,43 @@ export default class Welcome extends Component{
         return(
             <SafeAreaView style={styles.container}>
                 <ScrollView >
-                    <Text style={styles.introText}>Welcome to HemoFlux</Text>
-                    <Animatable.Text animation="pulse" easing="ease-out" iterationCount="infinite" style={styles.heart}>❤️</Animatable.Text>
                     <Text style={styles.headerText}>
-                        How do I start a session for streaming data?
+                        What is this?
                     </Text>
                     <Text style={styles.mainText}>
-                        Press the start button on the control panel below, a popup should ask what you would like
-                        to stream (raw data, HR value, gyro data)
+                        HemoFlux integrates with the HemoFlux Biosensor board, which is utilized sense bloodflow in exttremeties in real time! The device implements
+                        Photoplethsmography, or PPG, to use light in penetration of the skin for determination of heart rate, blood volume, blood flow, and more!
                     </Text>
                     <Text style={styles.headerText}>
-                        How else can I visualize data?
+                        Features:
                     </Text>
                     <Text style={styles.mainText}>
-                        Check out the ModelView tab at the bottom! this updates a 3D rendition of the device to show values by color.
+                        1. Stream Biosensor data to your mobile device in real time
+                    </Text>
+                    <Text style={styles.mainText}>
+                        2. Record the Biosensor data you have streamed
+                    </Text>
+                    <Text style={styles.mainText}>
+                        3. Observe and record real time HR values derived from multiple biosensors for improved accuracy and signal robustness 
+                    </Text>
+                    <Text style={styles.mainText}>
+                        4. Observe a 3D model of the device and sensor locations in order to receive visual feedback on bloodflow insights
+                    </Text>
+                    <Text style={styles.mainText}>
+                        5. Track longer term trends with the insights tab
+                    </Text>
+                    <Text style={styles.mainText}>
+                        6. Personalize the calculations by providing personal health info to assist calculations. **NOTE** all data is stored locally on your device in csv format.
+                        Data is not exported to a server.
+                    </Text>
+                    <Text>
+
+                    </Text>
+                    <Text>
+
+                    </Text>
+                    <Text>
+
                     </Text>
                     <Text>
 

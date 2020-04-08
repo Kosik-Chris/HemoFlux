@@ -33,7 +33,7 @@ import ModelView from '../scenes/ModelView';
 import RawDataStream from '../services/ble/stream/RawDataStream';
 import Profile from '../scenes/Profile';
 import Welcome from '../components/info/Welcome';
-
+import What from '../components/info/What';
 
 
 import {
@@ -64,17 +64,6 @@ let manager;
 
 
 class Main extends PureComponent {
-
-  static navigationOptions = {
-    title: 'Session',
-    headerStyle: {
-      backgroundColor: '#f4511e',
-    },
-    headerTintColor: '#fff',
-    headerTitleStyle: {
-      fontWeight: 'bold',
-    },
-  }
 
   constructor(props){
     super(props);
@@ -399,9 +388,19 @@ const styles = StyleSheet.create({
   },
 });
 
+const MainStack = createStackNavigator({
+      Main: Main,
+      What: What,
+      DeviceInfo: DeviceInfoScreen
+    },
+    {
+      headerMode: 'none'
+    }
+    );
+
 const RootTabNav = createBottomTabNavigator(
   {
-    Main: Main,
+    Main: MainStack,
     ModelView: ModelView,
     Insights: Insights,
     Profile: Profile,
