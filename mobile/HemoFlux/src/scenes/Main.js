@@ -157,6 +157,7 @@ class Main extends PureComponent {
                 console.log(error.message);
                 return;
               }
+              console.log(device.name);
             if(device.name == 'HemoFlux'){
                 manager.stopDeviceScan(); //device found
                 this.connectToDevice(device);
