@@ -14,7 +14,8 @@ import {
   Button,
   StatusBar,
   Platform,
-  Dimensions
+  Dimensions,
+  TextInput
 } from 'react-native';
 import RNBootSplash from "react-native-bootsplash";
 import { AppearanceProvider, useColorScheme } from 'react-native-appearance';
@@ -26,7 +27,7 @@ import RNAndroidLocationEnabler from "react-native-android-location-enabler";
 import DeviceInfo from 'react-native-device-info';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import RNFS from 'react-native-fs';
+import RNFS, { exists } from 'react-native-fs';
 import DeviceInfoScreen from '../components/device/deviceInfo';
 import Insights from '../scenes/Insights';
 import ModelView from '../scenes/ModelView';
@@ -60,8 +61,8 @@ let deviceList = new Map(); //holder for all devices
 let BleManagerOptions = {restoreStateIdentifier: "hello"}; //TODO: work on background/ restored state functionality
 
 const TabBarComponent = props => <BottomTabBar {...props} />;
-let manager; 
-let path = RNFS.DocumentDirectoryPath+'/test.txt';
+let manager;
+let path = RNFS.DocumentDirectoryPath;
 
 
 class Main extends PureComponent {
@@ -80,6 +81,7 @@ class Main extends PureComponent {
         isConnected: false,
         updateRate: 30,
         dataWidth: 75,
+        filename: '/test.csv'
     };
   }
 
@@ -101,14 +103,6 @@ class Main extends PureComponent {
 
   componentDidMount() {
     manager = new BleManager();
-    RNFS.writeFile(path, 'Lorem ipsum dolor sit amet', 'utf8')
-    .then((success) => {
-      console.log('FILE WRITTEN!');
-    })
-    .catch((err) => {
-      console.log(err.message);
-    });
-
     RNBootSplash.hide({ duration: 250 }); // fade bootsplash screen out
     this.requestAll().then(status => console.log(status));
     if(Platform.Os === 'android'){
@@ -216,6 +210,28 @@ class Main extends PureComponent {
     this.setState({isSessionModalVisible: !this.state.isSessionModalVisible});
   }
 
+  async record(filename){
+    if(await exists(path+filename)){
+      console.log('exists');
+      RNFS.appendFile(path+filename, '1,', 'ascii')
+      .then((success) => {
+        console.log('FILE APPEND');
+      })
+      .catch((err) => {
+        console.log(err.message);
+      });
+    }
+    else{
+      RNFS.writeFile(path+filename, '2,', 'ascii')
+      .then((success) => {
+        console.log('FILE WRITTEN!');
+      })
+      .catch((err) => {
+        console.log(err.message);
+      });
+    }
+  }
+
   render() {
 
     //not connected don't attempt to start components that need device prop
@@ -243,6 +259,7 @@ class Main extends PureComponent {
           >
           <View style={{flex: 1}}>
             <Text>Setup</Text>
+
             <Button title="Hide modal" onPress={this.toggleSetupModal} />
           </View>
         </Modal>
@@ -261,6 +278,7 @@ class Main extends PureComponent {
               <Icon.Button
                 name="folder"
                 backgroundColor="#e74d00"
+                onPress={()=> {this.record(this.state.filename)}}
                 >
                   Record
                 </Icon.Button>
@@ -308,6 +326,7 @@ class Main extends PureComponent {
               <Icon.Button
                 name="folder"
                 backgroundColor="#e74d00"
+                onPress={()=> {this.record(this.state.filename)}}
                 >
                   Record
                 </Icon.Button>
