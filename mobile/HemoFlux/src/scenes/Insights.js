@@ -128,8 +128,10 @@ export default class Insights extends Component {
         console.log(error);
       }
     }
-    if(Platform.OS === 'ios'){
-    console.log('IOS');
+    console.log(Platform.OS);
+    if(Platform.OS !== 'android'){
+    let check = await exists(path+filename);
+    console.log(check);
     Mailer.mail({
       subject: 'HemoFlux data acquistion',
       recipients: ['user@gmail.com'],
