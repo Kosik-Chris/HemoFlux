@@ -62,11 +62,7 @@ let BleManagerOptions = {restoreStateIdentifier: "hello"}; //TODO: work on backg
 
 const TabBarComponent = props => <BottomTabBar {...props} />;
 let manager; 
-<<<<<<< HEAD
 let path = RNFS.DocumentDirectoryPath+'/test.txt';
-=======
-let path = RNFS.DocumentDirectoryPath+'/test.txt';
->>>>>>> c4408a5f804a898e36523e7b7e53cf471d378aaa
 
 
 class Main extends PureComponent {
@@ -106,7 +102,6 @@ class Main extends PureComponent {
 
   componentDidMount() {
     manager = new BleManager();
-<<<<<<< HEAD
     RNFS.writeFile(path, 'Lorem ipsum dolor sit amet', 'utf8')
     .then((success) => {
       console.log('FILE WRITTEN!');
@@ -114,15 +109,6 @@ class Main extends PureComponent {
     .catch((err) => {
       console.log(err.message);
     });
-=======
-    RNFS.writeFile(path, 'Lorem ipsum dolor sit amet', 'utf8')
-    .then((success) => {
-      console.log('FILE WRITTEN!');
-    })
-    .catch((err) => {
-      console.log(err.message);
-    });
->>>>>>> c4408a5f804a898e36523e7b7e53cf471d378aaa
 
     RNBootSplash.hide({ duration: 250 }); // fade bootsplash screen out
     this.requestAll().then(status => console.log(status));
