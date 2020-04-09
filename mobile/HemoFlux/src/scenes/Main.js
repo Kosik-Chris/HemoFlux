@@ -54,6 +54,7 @@ import {
 import {check, request, PERMISSIONS, RESULTS, openSettings} from 'react-native-permissions';
 import { BleManager, ScanMode, Service } from 'react-native-ble-plx';
 import BLEconfig from '../services/files/bleConfig.json';
+import RNFS from 'react-native-fs';
 
 let ScanOptions = { scanMode: ScanMode.LowLatency };
 let deviceList = new Map(); //holder for all devices
@@ -61,6 +62,7 @@ let BleManagerOptions = {restoreStateIdentifier: "hello"}; //TODO: work on backg
 
 const TabBarComponent = props => <BottomTabBar {...props} />;
 let manager; 
+let path = RNFS.DocumentDirectoryPath + '/test.txt';
 
 
 class Main extends PureComponent {
@@ -100,7 +102,15 @@ class Main extends PureComponent {
 
   componentDidMount() {
     manager = new BleManager();
-    console.log(this.state.isSetupModalVisible);
+    //console.log(this.state.isSetupModalVisible);
+    RNFS.writeFile(path, 'Lorem ipsum dolor sit amet', 'utf8')
+      .then((success) => {
+        console.log('FILE WRITTEN!');
+      })
+      .catch((err) => {
+        console.log(err.message);
+      });
+
     RNBootSplash.hide({ duration: 250 }); // fade bootsplash screen out
     this.requestAll().then(status => console.log(status));
     if(Platform.Os === 'android'){
@@ -157,7 +167,6 @@ class Main extends PureComponent {
                 console.log(error.message);
                 return;
               }
-              console.log(device.name);
             if(device.name == 'HemoFlux'){
                 manager.stopDeviceScan(); //device found
                 this.connectToDevice(device);
