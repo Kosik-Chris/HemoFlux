@@ -54,7 +54,6 @@ import {
 import {check, request, PERMISSIONS, RESULTS, openSettings} from 'react-native-permissions';
 import { BleManager, ScanMode, Service } from 'react-native-ble-plx';
 import BLEconfig from '../services/files/bleConfig.json';
-import RNFS from 'react-native-fs';
 
 let ScanOptions = { scanMode: ScanMode.LowLatency };
 let deviceList = new Map(); //holder for all devices
