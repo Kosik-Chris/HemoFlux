@@ -102,6 +102,10 @@ class Main extends PureComponent {
   }
 
   componentDidMount() {
+    this.getOrientation();
+    Dimensions.addEventListener('change', () => {
+      this.getOrientation();
+    });
     manager = new BleManager();
     RNBootSplash.hide({ duration: 250 }); // fade bootsplash screen out
     this.requestAll().then(status => console.log(status));
@@ -134,11 +138,14 @@ class Main extends PureComponent {
   }
 
   getOrientation = () => {
+    
     if (this.refs.rootView) {
       if (Dimensions.get('window').width < Dimensions.get('window').height) {
         this.setState({ orientation: 'portrait' });
+        console.log('portrait');
       } else {
         this.setState({ orientation: 'landscape' });
+        console.log('landscape');
       }
     }
   };
@@ -213,7 +220,7 @@ class Main extends PureComponent {
   async record(filename){
     if(await exists(path+filename)){
       console.log('exists');
-      RNFS.appendFile(path+filename, '1,', 'ascii')
+      RNFS.appendFile(path+filename, '1,1,1\r\n', 'ascii')
       .then((success) => {
         console.log('FILE APPEND');
       })
@@ -222,7 +229,7 @@ class Main extends PureComponent {
       });
     }
     else{
-      RNFS.writeFile(path+filename, '2,', 'ascii')
+      RNFS.writeFile(path+filename, 'Red0Value,Ir0Value,Green0Value,UpdateRate(time width)\r\n'+'2,4,3,30ms\r\n', 'ascii')
       .then((success) => {
         console.log('FILE WRITTEN!');
       })
@@ -233,6 +240,15 @@ class Main extends PureComponent {
   }
 
   render() {
+
+    let panelHeight;
+
+    if (this.state.orientation === 'portrait') {
+      panelHeight = Dimensions.get('window').height/15;
+    }
+    if (this.state.orientation === 'landscape') {
+      panelHeight = Dimensions.get('window').height/10;
+    }
 
     //not connected don't attempt to start components that need device prop
     if(this.state.isSessionRunning === false){
@@ -406,7 +422,7 @@ const styles = StyleSheet.create({
     padding: 5,
     borderWidth: 2,
     width: '100%',
-    height: (Dimensions.get('window').height/15),
+    height: Dimensions.get('window').height/15,
     bottom: 0,
     position: 'absolute',
     alignItems: 'center',

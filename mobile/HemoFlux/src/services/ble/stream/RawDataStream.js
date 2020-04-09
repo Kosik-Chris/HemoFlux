@@ -9,7 +9,8 @@
 
 import React, {PureComponent} from 'react';
 import {StyleSheet, processColor, View, Text, Platform} from 'react-native';
-
+import Icon from 'react-native-vector-icons/FontAwesome';
+import * as Animatable from 'react-native-animatable';
 import {LineChart} from 'react-native-charts-wrapper';
 import { getDecFrom64 } from '../utility/DecFrom64';
 import BLEconfig from '../../files/bleConfig';
@@ -3668,7 +3669,8 @@ export default class RawDataStream extends PureComponent {
         // <View style={styles.body}>
         // <View style={styles.headerRow}>
           <View style={styles.rowItemBold}>
-            <Text>loading...</Text>
+            <Animatable.Text animation="pulse" easing="ease-out" iterationCount="infinite" style={{fontSize: 35, fontWeight: '100'}}>Loading...</Animatable.Text>
+            <Animatable.Text animation="pulse" easing="ease-out" iterationCount="infinite" style={{fontSize: 75}}>❤️</Animatable.Text>
           </View>
         // </View>
         // </View>
@@ -3729,7 +3731,9 @@ const styles = StyleSheet.create({
     },
     rowItemBold: {
       padding: 1,
-      width: '33%',
-      flexDirection: 'row'
+      flexDirection: 'row',
+      justifyContent: 'center',
+      textAlign: 'center',
+      fontSize: 75 
     },
   });
