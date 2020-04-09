@@ -26,7 +26,7 @@ import RNAndroidLocationEnabler from "react-native-android-location-enabler";
 import DeviceInfo from 'react-native-device-info';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
+import RNFS from 'react-native-fs';
 import DeviceInfoScreen from '../components/device/deviceInfo';
 import Insights from '../scenes/Insights';
 import ModelView from '../scenes/ModelView';
@@ -62,7 +62,11 @@ let BleManagerOptions = {restoreStateIdentifier: "hello"}; //TODO: work on backg
 
 const TabBarComponent = props => <BottomTabBar {...props} />;
 let manager; 
-let path = RNFS.DocumentDirectoryPath + '/test.txt';
+<<<<<<< HEAD
+let path = RNFS.DocumentDirectoryPath+'/test.txt';
+=======
+let path = RNFS.DocumentDirectoryPath+'/test.txt';
+>>>>>>> c4408a5f804a898e36523e7b7e53cf471d378aaa
 
 
 class Main extends PureComponent {
@@ -102,14 +106,23 @@ class Main extends PureComponent {
 
   componentDidMount() {
     manager = new BleManager();
-    //console.log(this.state.isSetupModalVisible);
+<<<<<<< HEAD
     RNFS.writeFile(path, 'Lorem ipsum dolor sit amet', 'utf8')
-      .then((success) => {
-        console.log('FILE WRITTEN!');
-      })
-      .catch((err) => {
-        console.log(err.message);
-      });
+    .then((success) => {
+      console.log('FILE WRITTEN!');
+    })
+    .catch((err) => {
+      console.log(err.message);
+    });
+=======
+    RNFS.writeFile(path, 'Lorem ipsum dolor sit amet', 'utf8')
+    .then((success) => {
+      console.log('FILE WRITTEN!');
+    })
+    .catch((err) => {
+      console.log(err.message);
+    });
+>>>>>>> c4408a5f804a898e36523e7b7e53cf471d378aaa
 
     RNBootSplash.hide({ duration: 250 }); // fade bootsplash screen out
     this.requestAll().then(status => console.log(status));

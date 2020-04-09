@@ -251,6 +251,8 @@ PODS:
     - React
   - RNDeviceInfo (5.5.3):
     - React
+  - RNFS (2.16.6):
+    - React
   - RNGestureHandler (1.6.1):
     - React
   - RNGLModelView (1.5.0):
@@ -309,6 +311,7 @@ DEPENDENCIES:
   - RNCharts (from `../node_modules/react-native-charts-wrapper`)
   - "RNCMaskedView (from `../node_modules/@react-native-community/masked-view`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
+  - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNGLModelView (from `../node_modules/react-native-gl-model-view`)
   - RNPermissions (from `../node_modules/react-native-permissions`)
@@ -401,6 +404,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-community/masked-view"
   RNDeviceInfo:
     :path: "../node_modules/react-native-device-info"
+  RNFS:
+    :path: "../node_modules/react-native-fs"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
   RNGLModelView:
@@ -458,6 +463,7 @@ SPEC CHECKSUMS:
   RNCharts: d364ca2085e24edb9ee0390d3fb7209257daa44c
   RNCMaskedView: 76c40a1d41c3e2535df09246a2b5487f04de0814
   RNDeviceInfo: 310c1f43d418d950a193c7650de2f9559c906048
+  RNFS: 2bd9eb49dc82fa9676382f0585b992c424cd59df
   RNGestureHandler: 8f09cd560f8d533eb36da5a6c5a843af9f056b38
   RNGLModelView: c80855ba665f63acacbff25aea543961309d5d03
   RNPermissions: 1008d3511fee0e25739cf81c4af0d1b2248f1053
@@ -467,6 +473,6 @@ SPEC CHECKSUMS:
   SwiftyJSON: 36413e04c44ee145039d332b4f4e2d3e8d6c4db7
   Yoga: f2a7cd4280bfe2cca5a7aed98ba0eb3d1310f18b
 
-PODFILE CHECKSUM: 74ab696c1f49b0632bf622c074b59cb8a2066a1d
+PODFILE CHECKSUM: 5be5df25187166cd1ad9409a004798f14fea8a62
 
 COCOAPODS: 1.9.1
