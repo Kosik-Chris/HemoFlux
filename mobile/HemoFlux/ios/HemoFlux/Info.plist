@@ -2,20 +2,21 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-
-	<!--Begin Permissions-->
+	<key>UIAppFonts</key>
+	<array>
+		<string>FontAwesome.ttf</string>
+		<string>IonIcons.ttf</string>
+	</array>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Device BLE</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>BLE Peripheral</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>App always uses BLE</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>App always uses BLE</string>
 	<key>NSMotionUsageDescription</key>
 	<string>Motion usage</string>
-	<!--End Permissions-->
-
-	
-
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>

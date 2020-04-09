@@ -78,7 +78,7 @@ class Main extends PureComponent {
         device: null,
         isConnected: false,
         updateRate: 30,
-        dataWidth: 10,
+        dataWidth: 75,
     };
   }
 
@@ -157,6 +157,7 @@ class Main extends PureComponent {
                 console.log(error.message);
                 return;
               }
+              console.log(device.name);
             if(device.name == 'HemoFlux'){
                 manager.stopDeviceScan(); //device found
                 this.connectToDevice(device);

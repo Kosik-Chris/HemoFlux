@@ -56,7 +56,7 @@
     },
     "deviceSetup" : {
         "MAX_NUM_PPG" : 7,
-        "NUM_PPG" : 3,
+        "NUM_PPG" : 1,
         "MAX_CHAR_HANDLE" : 25,
         "BATTLVLPIN" : 34
     },
