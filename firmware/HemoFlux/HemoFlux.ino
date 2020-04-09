@@ -246,13 +246,15 @@ void loop() {
                     beatAvg /= RATE_SIZE;
                   }
                 }
+            #ifdef HRDEBUG
+              Serial.print("IR =");
+              Serial.print(data_i);
+              Serial.print(", BPM=");
+              Serial.print(beatsPerMinute);
+              Serial.print(", Avg BPM=");
+              Serial.println(beatAvg);
 
-//              Serial.print("IR =");
-//              Serial.print(data_i);
-//              Serial.print(", BPM=");
-//              Serial.print(beatsPerMinute);
-//              Serial.print(", Avg BPM=");
-//              Serial.println(beatAvg);
+           #endif
             
             redChars[i]->setValue((uint32_t&)data_r);   
             irChars[i]->setValue((uint32_t&)data_i);    

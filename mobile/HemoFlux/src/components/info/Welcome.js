@@ -31,6 +31,9 @@ export default class Welcome extends Component{
                     <Text>
 
                     </Text>
+                    <Text>
+
+                    </Text>
                 </ScrollView>
             </SafeAreaView>    
         );

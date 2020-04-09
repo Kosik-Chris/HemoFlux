@@ -103,12 +103,14 @@ class Main extends PureComponent {
     console.log(this.state.isSetupModalVisible);
     RNBootSplash.hide({ duration: 250 }); // fade bootsplash screen out
     this.requestAll().then(status => console.log(status));
-    Platform.select({
-      android:  RNAndroidLocationEnabler.promptForEnableLocationIfNeeded({
-                interval: 10000,
-                fastInterval: 5000,
-                  }).then(data => {})
-    });
+    if(Platform.Os === 'android'){
+      Platform.select({
+        android:  RNAndroidLocationEnabler.promptForEnableLocationIfNeeded({
+                  interval: 10000,
+                  fastInterval: 5000,
+                    }).then(data => {})
+      });
+    }
     const subscription = manager.onStateChange(bleState => {
       //BLE adapter is on
       if (bleState === 'PoweredOn') {
@@ -123,6 +125,9 @@ class Main extends PureComponent {
   }
 
   componentWillUnmount(){
+    if(this.state.isConnected === true){
+      this.disconnect;
+    }
     manager.destroy(); //properly remove the BLE adapter instance
   }
 

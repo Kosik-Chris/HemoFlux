@@ -13,6 +13,9 @@
 	<key>NSMotionUsageDescription</key>
 	<string>Motion usage</string>
 	<!--End Permissions-->
+
+	
+
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
