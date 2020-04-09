@@ -26,7 +26,7 @@ import RNAndroidLocationEnabler from "react-native-android-location-enabler";
 import DeviceInfo from 'react-native-device-info';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
+import RNFS from 'react-native-fs';
 import DeviceInfoScreen from '../components/device/deviceInfo';
 import Insights from '../scenes/Insights';
 import ModelView from '../scenes/ModelView';
@@ -61,6 +61,7 @@ let BleManagerOptions = {restoreStateIdentifier: "hello"}; //TODO: work on backg
 
 const TabBarComponent = props => <BottomTabBar {...props} />;
 let manager; 
+let path = RNFS.DocumentDirectoryPath+'/test.txt';
 
 
 class Main extends PureComponent {
@@ -100,7 +101,14 @@ class Main extends PureComponent {
 
   componentDidMount() {
     manager = new BleManager();
-    console.log(this.state.isSetupModalVisible);
+    RNFS.writeFile(path, 'Lorem ipsum dolor sit amet', 'utf8')
+    .then((success) => {
+      console.log('FILE WRITTEN!');
+    })
+    .catch((err) => {
+      console.log(err.message);
+    });
+
     RNBootSplash.hide({ duration: 250 }); // fade bootsplash screen out
     this.requestAll().then(status => console.log(status));
     if(Platform.Os === 'android'){
