@@ -78,7 +78,7 @@ class Main extends PureComponent {
         device: null,
         isConnected: false,
         updateRate: 30,
-        dataWidth: 10,
+        dataWidth: 75,
     };
   }
 
@@ -142,9 +142,9 @@ class Main extends PureComponent {
   };
 
   scanDevices = () => {
-    this.toggleSetupModal;
+    this.toggleSessionModal;
     this.setState({
-      isSetupModalVisible: false
+      isSessionModalVisible: false
     })
     console.log("beginning scan..");
     manager.startDeviceScan(
@@ -202,9 +202,7 @@ class Main extends PureComponent {
 
 
   toggleSetupModal = () => {
-    console.log(this.state.isSetupModalVisible);
     this.setState({isSetupModalVisible: !this.state.isSetupModalVisible});
-    console.log(this.state.isSetupModalVisible);
   };
   toggleSessionModal = () => {
     this.setState({isSessionModalVisible: !this.state.isSessionModalVisible});
@@ -217,15 +215,26 @@ class Main extends PureComponent {
       return (
         <View style={styles.body}>
         <Welcome />
-        <Modal isVisible={this.state.isSetupModalVisible}
-        style={styles.setupModal}
-        hasBackdrop={true}
-        backdropColor={'black'}
-        backdropOpacity={0.3}
-        >
+        <Modal isVisible={this.state.isSessionModalVisible}
+          style={styles.sessionModal}
+          hasBackdrop={true}
+          backdropColor={'black'}
+          backdropOpacity={0.3}
+          >
           <View style={{flex: 1}}>
             <Text>Hello!</Text>
             <Button title="Start Session" onPress={this.scanDevices}/>
+            <Button title="Hide modal" onPress={this.toggleSessionModal} />
+          </View>
+        </Modal>
+        <Modal isVisible={this.state.isSetupModalVisible}
+          style={styles.setupModal}
+          hasBackdrop={true}
+          backdropColor={'black'}
+          backdropOpacity={0.3}
+          >
+          <View style={{flex: 1}}>
+            <Text>Setup</Text>
             <Button title="Hide modal" onPress={this.toggleSetupModal} />
           </View>
         </Modal>
@@ -235,7 +244,7 @@ class Main extends PureComponent {
                 <Icon.Button
                 name="play"
                 backgroundColor="#e74d00"
-                onPress={this.toggleSetupModal}
+                onPress={this.toggleSessionModal}
                 >
                   Start
                 </Icon.Button>
@@ -252,7 +261,8 @@ class Main extends PureComponent {
               <Icon.Button
                 name="ellipsis-v"
                 backgroundColor="#e74d00"
-                // onPress={this.toggleSetupModal}
+                //onPress={() => this.props.navigation.navigate('What')}
+                onPress={this.toggleSetupModal}
                 >
                 </Icon.Button>
               </View>
@@ -264,6 +274,17 @@ class Main extends PureComponent {
     if(this.state.isSessionRunning === true){
       return (
         <View style={styles.body}>
+          <Modal isVisible={this.state.isSetupModalVisible}
+            style={styles.setupModal}
+            hasBackdrop={true}
+            backdropColor={'black'}
+            backdropOpacity={0.3}
+            >
+          <View style={{flex: 1}}>
+            <Text>Setup</Text>
+            <Button title="Hide modal" onPress={this.toggleSetupModal} />
+          </View>
+        </Modal>
           <View style={styles.controlPanel}>
             <View style={styles.controlPanelRow}>
               <View style={styles.sessionBtnWrapper}>
@@ -287,6 +308,8 @@ class Main extends PureComponent {
               <Icon.Button
                 name="filter"
                 backgroundColor="#e74d00"
+                //onPress={() => this.props.navigation.navigate('What')}
+                onPress={this.toggleSetupModal}
                 >
                   Settings
                 </Icon.Button>

@@ -253,15 +253,17 @@ void loop() {
               Serial.print(beatsPerMinute);
               Serial.print(", Avg BPM=");
               Serial.println(beatAvg);
-
+              
            #endif
             
             redChars[i]->setValue((uint32_t&)data_r);   
             irChars[i]->setValue((uint32_t&)data_i);    
-            greenChars[i]->setValue((uint32_t&)data_g); 
+            greenChars[i]->setValue((uint32_t&)data_g);\
+            hrChar->setValue(beatAvg); 
             redChars[i]->notify(); 
             irChars[i]->notify();
             greenChars[i]->notify();
+            hrChar->notify();
             ppgCollection[i].nextSample(); //We're finished with this sample so move to next sample
           }
        }
