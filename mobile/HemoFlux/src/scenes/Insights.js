@@ -5,7 +5,7 @@
  */ 
 
 import React, {PureComponent, Component} from 'react';
-import {StyleSheet, processColor, View, Text, TouchableOpacity, ScrollView, Platform, Button} from 'react-native';
+import {StyleSheet, processColor, View, Text, TouchableOpacity, ScrollView, Platform, Button, Alert} from 'react-native';
 import { AppearanceProvider, useColorScheme } from 'react-native-appearance';
 import {check, request, PERMISSIONS, RESULTS, openSettings} from 'react-native-permissions';
 import RNFS, { exists } from 'react-native-fs';
@@ -78,7 +78,7 @@ export default class Insights extends Component {
   }
 
   async handleEmail(filename) {
-    if(Platform.Os !== 'ios'){
+    if(Platform.OS !== 'ios'){
       //SOLUTION CREDIT: https://github.com/chirag04/react-native-mail/issues/123
       //we must copy the file to external storage for android to be able to access it rather than internal app cache.
       try{
@@ -102,16 +102,16 @@ export default class Insights extends Component {
         let fileChk = await exists(hemoPath+filename);
         console.log(fileChk);
         Mailer.mail({
-          subject: 'HemoFlux email test',
-          recipients: ['joseignacio.rodriguez-labra@wmich.edu'],
-          ccRecipients: ['christopher.j.kosik@wmich.edu'],
-          bccRecipients: ['christopher.j.kosik@wmich.edu'],
-          body: '<b>In the beginning it was pure creation..</b>',
+          subject: 'HemoFlux data acquistion',
+          recipients: ['user@gmail.com'],
+          ccRecipients: ['user@gmail.com'],
+          bccRecipients: ['user@gmail.com'],
+          body: '<b>The latest data for: '+filename+'.</b>',
           isHTML: true,
           attachment: {
             path: hemoPath+filename,  // The absolute path of the file from which to read data.
             type: 'csv',   // Mime Type: jpg, png, doc, ppt, html, pdf, csv
-            name: 'westworld.csv',   // Optional: Custom filename for attachment
+            name: 'data.csv',   // Optional: Custom filename for attachment
           }
         }, (error, event) => {
           Alert.alert(
@@ -128,19 +128,19 @@ export default class Insights extends Component {
         console.log(error);
       }
     }
-    if(Platform.Os !== 'ios'){
-
+    if(Platform.OS === 'ios'){
+    console.log('IOS');
     Mailer.mail({
-      subject: 'HemoFlux email test',
-      recipients: ['joseignacio.rodriguez-labra@wmich.edu'],
-      ccRecipients: ['christopher.j.kosik@wmich.edu'],
-      bccRecipients: ['christopher.j.kosik@wmich.edu'],
-      body: '<b>In the beginning it was pure creation..</b>',
+      subject: 'HemoFlux data acquistion',
+      recipients: ['user@gmail.com'],
+      ccRecipients: ['theboss@gmail.com'],
+      bccRecipients: ['theboss@gmail.com'],
+      body: '<b>The latest data for: '+filename+'.</b>',
       isHTML: true,
       attachment: {
         path: path+filename,  // The absolute path of the file from which to read data.
         type: 'csv',   // Mime Type: jpg, png, doc, ppt, html, pdf, csv
-        name: 'westworld.csv',   // Optional: Custom filename for attachment
+        name: 'data.csv',   // Optional: Custom filename for attachment
       }
     }, (error, event) => {
       Alert.alert(
