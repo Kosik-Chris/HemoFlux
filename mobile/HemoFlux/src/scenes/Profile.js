@@ -13,6 +13,7 @@ import Stock from '../components/charts/Stock';
 import Sinewave from '../components/charts/Sinewave';
 import RNFetchBlob from 'rn-fetch-blob';
 import Scatter from '../components/charts/Scatter';
+import { SafeAreaView } from 'react-navigation';
 
 
 
@@ -24,7 +25,10 @@ export default class Profile extends Component {
 
   render() {
     return(
-      <Scatter/>
+      <SafeAreaView>
+        <Scatter/>
+      </SafeAreaView>
+      
     );
   }
 

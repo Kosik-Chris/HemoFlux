@@ -67,7 +67,7 @@ export default class HRDataStream extends PureComponent {
     super(props);
     this.state = {
       //the array of values for each channel
-      hrvalues: [{x: 0, y: 2200}],
+      hrvalues: [{x: 0, y: 60}],
       marker: {
         enabled: true,
         digits: 2,
@@ -134,10 +134,10 @@ export default class HRDataStream extends PureComponent {
     if (this.state.hrvalues.length >= this.props.dataWidth) {
       console.log("some mount error..");
     } 
-    if(this.state.hrvalues.length >= 1 && this.state.hrvalues.length < this.props.dataWidth && this.state.hrvalues!= null) {
-        console.log("some mount error..");
+    if(this.state.hrvalues.length >= 1 && this.state.hrvalues.length < this.props.dataWidth && this.state.heart_rate!= null) {
+        console.log("some mount error 2..");
     }
-    if(this.state.hrvalues < 1 || this.state.hrvalues == null){
+    if(this.state.hrvalues < 1 || this.state.heart_rate == null){
       //this.refs.rawChart.highlights([]);
             // https://github.com/PhilJay/MPAndroidChart/issues/2450
       // MpAndroidChart 3.0.2 will crash when data entry list is empty.
@@ -178,6 +178,7 @@ export default class HRDataStream extends PureComponent {
           BLEconfig.heartRateSID,
           BLEconfig.heartRateCID,
           (error, chr) => {
+            console.log(chr);
             let basesixfour = chr.value;
             let basedec= getDecFrom64(basesixfour);
             hr = basedec;

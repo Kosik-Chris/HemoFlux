@@ -32,6 +32,8 @@ import DeviceInfoScreen from '../components/device/deviceInfo';
 import Insights from '../scenes/Insights';
 import ModelView from '../scenes/ModelView';
 import RawDataStream from '../services/ble/stream/RawDataStream';
+import HRStream from '../services/ble/stream/HRStream';
+import IMUStream from '../services/ble/stream/IMUStream';
 import Profile from '../scenes/Profile';
 import Welcome from '../components/info/Welcome';
 import What from '../components/info/What';
@@ -81,6 +83,8 @@ class Main extends PureComponent {
         isConnected: false,
         updateRate: 30,
         dataWidth: 75,
+        chartSelect: 'rawchart',
+        isRecording: false,
         filename: '/test.csv'
     };
   }
@@ -217,27 +221,66 @@ class Main extends PureComponent {
     this.setState({isSessionModalVisible: !this.state.isSessionModalVisible});
   }
 
-  async record(filename){
-    if(await exists(path+filename)){
-      console.log('exists');
-      RNFS.appendFile(path+filename, '1,1,1\r\n', 'ascii')
+
+  /**
+   * Create the record on mount if configured for recording, set record flag
+   * @param {*} this.state.filename
+   */
+  createRecord = () => {
+        RNFS.appendFile(path+this.state.filename, 'Red0Value,Ir0Value,Green0Value,UpdateRate(time width)\r\n', 'ascii')
+        .then((success) => {
+          console.log("record file created successfully");
+        })
+        .catch((err) => {
+          console.log(err.message);
+        });
+    this.setState({
+      isRecording: true
+    });
+    this.scanDevices();
+  }
+
+  /**
+   * Delete the local file if it already exists, then go ahead and start appending
+   * @param {*} this.state.filename 
+   */
+  preDeleteFile = () =>{
+    if(exists(path+this.state.filename)){
+      RNFS.unlink(path+this.state.filename)
       .then((success) => {
-        console.log('FILE APPEND');
+        console.log('DELETED');
       })
       .catch((err) => {
         console.log(err.message);
       });
     }
     else{
-      RNFS.writeFile(path+filename, 'Red0Value,Ir0Value,Green0Value,UpdateRate(time width)\r\n'+'2,4,3,30ms\r\n', 'ascii')
-      .then((success) => {
-        console.log('FILE WRITTEN!');
-      })
-      .catch((err) => {
-        console.log(err.message);
-      });
+      console.log('File DNE');
     }
+    this.createRecord();
   }
+
+  setHRChart = () => {
+    this.setState({
+      chartSelect: 'hrchart'
+    });
+    this.scanDevices();
+  }
+
+  setIMUChart = () => {
+    this.setState({
+      chartSelect: 'imuchart'
+    });
+    this.scanDevices();
+  }
+
+  setRawChart = () => {
+    this.setState({
+      chartSelect: 'rawchart'
+    });
+    this.scanDevices();
+  }
+
 
   render() {
 
@@ -253,30 +296,83 @@ class Main extends PureComponent {
     //not connected don't attempt to start components that need device prop
     if(this.state.isSessionRunning === false){
       return (
+        <SafeAreaView>
         <View style={styles.body}>
         <Welcome />
         <Modal isVisible={this.state.isSessionModalVisible}
-          style={styles.sessionModal}
           hasBackdrop={true}
-          backdropColor={'black'}
-          backdropOpacity={0.3}
+          backdropColor={'red'}
+          backdropOpacity={0.4}
           >
-          <View style={{flex: 1}}>
-            <Text>Hello!</Text>
-            <Button title="Start Session" onPress={this.scanDevices}/>
-            <Button title="Hide modal" onPress={this.toggleSessionModal} />
+          <View style={styles.sessionModal}>
+            <View style={styles.modalBtnWrapper}>
+              <Icon.Button 
+              onPress={this.setRawChart}
+              backgroundColor="#1e1e1e"
+              name="play-circle-o"
+              >
+                Start unrecorded Session
+              </Icon.Button>  
+            </View>
+            <View style={styles.modalBtnWrapper}>
+              <Icon.Button
+              onPress={this.preDeleteFile}
+              backgroundColor="#1e1e1e"
+              name="times-rectangle"
+              >
+                Start recorded Session
+              </Icon.Button>  
+            </View>
+            <View style={styles.modalBtnWrapper}>
+              <Icon.Button 
+              onPress={this.preDeleteFile}
+              backgroundColor="#1e1e1e"
+              name="wrench"
+              >
+                Pre-configure recording details
+              </Icon.Button>    
+            </View>
+            <View style={styles.modalBtnWrapper}>
+              <Icon.Button 
+              onPress={this.setHRChart}
+              backgroundColor="#1e1e1e"
+              name="heartbeat"
+              >
+                Start Unrecorded HR
+              </Icon.Button>  
+            </View>
+            <View style={styles.modalBtnWrapper}>
+              <Icon.Button 
+              onPress={this.setIMUChart}
+              backgroundColor="#1e1e1e"
+              name="balance-scale"
+              >
+                Start Unrecorded IMU
+              </Icon.Button>  
+            </View> 
+            <View style={styles.modalBtnWrapper}>
+              <Icon.Button 
+              onPress={this.toggleSessionModal}
+              backgroundColor="#1e1e1e"
+              name="backward"
+              >
+                Back
+              </Icon.Button> 
+            </View>          
           </View>
         </Modal>
         <Modal isVisible={this.state.isSetupModalVisible}
-          style={styles.setupModal}
           hasBackdrop={true}
-          backdropColor={'black'}
-          backdropOpacity={0.3}
+          backdropColor={'red'}
+          backdropOpacity={0.4}
           >
-          <View style={{flex: 1}}>
-            <Text>Setup</Text>
-
-            <Button title="Hide modal" onPress={this.toggleSetupModal} />
+          <View style={styles.setupModal}>
+          <Icon.Button name="backward"
+            backgroundColor="#1e1e1e"
+            style={styles.modalBtn}
+            onPress={this.toggleSetupModal}>
+              Back
+            </Icon.Button>
           </View>
         </Modal>
           <View style={styles.controlPanel}>
@@ -311,20 +407,24 @@ class Main extends PureComponent {
             </View>
           </View>
         </View> 
+        </SafeAreaView>
       );
     }
-    if(this.state.isSessionRunning === true){
+    if(this.state.isSessionRunning === true && this.state.chartSelect === 'rawchart'){
       return (
+        <SafeAreaView>
         <View style={styles.body}>
           <Modal isVisible={this.state.isSetupModalVisible}
-            style={styles.setupModal}
             hasBackdrop={true}
-            backdropColor={'black'}
-            backdropOpacity={0.3}
+            backdropColor={'red'}
+            backdropOpacity={0.4}
             >
-          <View style={{flex: 1}}>
-            <Text>Setup</Text>
-            <Button title="Hide modal" onPress={this.toggleSetupModal} />
+          <View tyle={styles.setupModal}>
+            <Icon.Button name="backward"
+            onPress={this.toggleSetupModal}
+            backgroundColor="#1e1e1e">
+              Back
+            </Icon.Button>
           </View>
         </Modal>
           <View style={styles.controlPanel}>
@@ -361,11 +461,136 @@ class Main extends PureComponent {
           </View>
           <View style={styles.graphContainer}>
               <RawDataStream device={this.state.device}
+               filename={this.state.filename}
                dataWidth={this.state.dataWidth}
                updateRate={this.state.updateRate}
+               isRecording={this.state.isRecording}
+               style={{height: '50%'}} />
+          </View>
+        </View>
+        </SafeAreaView> 
+      );
+    }
+    if(this.state.isSessionRunning === true && this.state.chartSelect === 'hrchart'){
+      return (
+        <SafeAreaView>
+        <View style={styles.body}>
+          <Modal isVisible={this.state.isSetupModalVisible}
+            hasBackdrop={true}
+            backdropColor={'red'}
+            backdropOpacity={0.4}
+            >
+          <View style={styles.setupModal}>
+          <Icon.Button name="backward"
+            onPress={this.toggleSetupModal}
+            backgroundColor="#1e1e1e">
+              Back
+            </Icon.Button>
+          </View>
+        </Modal>
+          <View style={styles.controlPanel}>
+            <View style={styles.controlPanelRow}>
+              <View style={styles.sessionBtnWrapper}>
+              <Icon.Button
+                name="stop"
+                backgroundColor="#e74d00"
+                onPress={this.disconnect}
+                >
+                 Stop
+                </Icon.Button>
+              </View>
+              <View style={styles.sessionBtnWrapper}>
+              <Icon.Button
+                name="folder"
+                backgroundColor="#e74d00"
+                onPress={()=> {this.record(this.state.filename)}}
+                >
+                  Record
+                </Icon.Button>
+              </View>
+              <View style={styles.sessionBtnWrapper}>
+              <Icon.Button
+                name="filter"
+                backgroundColor="#e74d00"
+                //onPress={() => this.props.navigation.navigate('What')}
+                onPress={this.toggleSetupModal}
+                >
+                  Settings
+                </Icon.Button>
+              </View>
+            </View>
+          </View>
+          <View style={styles.graphContainer}>
+              <HRStream device={this.state.device}
+               filename={this.state.filename}
+               dataWidth={this.state.dataWidth}
+               updateRate={this.state.updateRate}
+               isRecording={this.state.isRecording}
+               style={{height: '50%'}} />
+          </View>
+        </View>
+        </SafeAreaView> 
+      );
+    }
+    if(this.state.isSessionRunning === true && this.state.chartSelect === 'imuchart'){
+      return (
+        <SafeAreaView>
+        <View style={styles.body}>
+          <Modal isVisible={this.state.isSetupModalVisible}
+            hasBackdrop={true}
+            backdropColor={'red'}
+            backdropOpacity={0.4}
+            >
+          <View style={styles.setupModal}>
+          <Icon.Button name="backward"
+            onPress={this.toggleSetupModal}
+            backgroundColor="#1e1e1e">
+              Back
+            </Icon.Button>
+          </View>
+        </Modal>
+          <View style={styles.controlPanel}>
+            <View style={styles.controlPanelRow}>
+              <View style={styles.sessionBtnWrapper}>
+              <Icon.Button
+                name="stop"
+                backgroundColor="#e74d00"
+                onPress={this.disconnect}
+                >
+                 Stop
+                </Icon.Button>
+              </View>
+              <View style={styles.sessionBtnWrapper}>
+              <Icon.Button
+                name="folder"
+                backgroundColor="#e74d00"
+                onPress={()=> {this.record(this.state.filename)}}
+                >
+                  Record
+                </Icon.Button>
+              </View>
+              <View style={styles.sessionBtnWrapper}>
+              <Icon.Button
+                name="filter"
+                backgroundColor="#e74d00"
+                //onPress={() => this.props.navigation.navigate('What')}
+                onPress={this.toggleSetupModal}
+                >
+                  Settings
+                </Icon.Button>
+              </View>
+            </View>
+          </View>
+          <View style={styles.graphContainer}>
+              <IMUStream device={this.state.device}
+               filename={this.state.filename}
+               dataWidth={this.state.dataWidth}
+               updateRate={this.state.updateRate}
+               isRecording={this.state.isRecording}
                style={{height: '50%'}} />
           </View>
         </View> 
+        </SafeAreaView>
       );
     }
   }
@@ -452,11 +677,21 @@ const styles = StyleSheet.create({
     top: 0
   },
   setupModal: {
-
+    justifyContent: 'space-around'
   },
   sessionModal: {
-
+    justifyContent: 'space-around',
   },
+  modalBtnWrapper: {
+    display: 'flex',
+    marginLeft: 10,
+    marginRight: 10,
+    padding: 2,
+    width: Dimensions.get('window').width/2
+  },
+  modalBtn: {
+
+  }
 });
 
 const MainStack = createStackNavigator({

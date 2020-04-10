@@ -5,10 +5,15 @@
  */ 
 
 import React, {PureComponent, Component} from 'react';
-import {StyleSheet, processColor, View, Text, TouchableOpacity, ScrollView, Platform, Button, Alert} from 'react-native';
+import {StyleSheet, 
+processColor, 
+View, Text, TouchableOpacity, ScrollView, Platform, Button, 
+Alert, Dimensions,} from 'react-native';
 import { AppearanceProvider, useColorScheme } from 'react-native-appearance';
 import {check, request, PERMISSIONS, RESULTS, openSettings} from 'react-native-permissions';
 import RNFS, { exists } from 'react-native-fs';
+import Modal from 'react-native-modal';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import Mailer from 'react-native-mail';
 import {
   getAvailableLocationProviders,
@@ -30,10 +35,16 @@ import Stock from '../components/charts/Stock';
 import Sinewave from '../components/charts/Sinewave';
 import RNFetchBlob from 'rn-fetch-blob';
 import Piechart from '../components/charts/Piechart';
+import Linkage from '../components/charts/Linkage';
+import { SafeAreaView } from 'react-navigation';
 
 
 let path = RNFS.DocumentDirectoryPath;
 let extpath;
+let dirData;
+let file;
+let fileList = new Map();
+let fileListArr = [];
 
 export default class Insights extends Component {
 
@@ -41,7 +52,14 @@ export default class Insights extends Component {
     super(props);
 
     this.state = {
-      filename: '/test.csv'
+      filename: '/test.csv',
+      dataLoaded: false, //boolean if user has selected data to load from file or not for rendering graph
+      isLoadModalVisible: false,
+      isDeleteModalVisible: false,
+      isEmailModalVisible: false,
+      loadMode: false,
+      deleteMode: false,
+      emailMode: false
     }
   }
 
@@ -61,9 +79,31 @@ export default class Insights extends Component {
     }
   }
 
+   async readdir(){
+      await RNFS.readdir(path).then((success) => {
+        console.log(success);
+        dirData = success;
+        // console.log('dirData set: '+dirData);
+        for(var i=0; i< success.length; i++){
+          if(!fileList.has(success[i])){
+            //file is not in list, add it
+            fileList.set(i,success[i]); //make the key the iteration tied to location?
+          }
+        }
+        for(var i=0; i< fileList.size; i++){
+          //console.log('FILELIST: '+fileList.get(i));
+          fileListArr[i] = fileList.get(i); //now put map values into array
+          console.log(fileListArr);
+          console.log(fileListArr.length);
+        }
+        // return data;
+      }).catch((err) => {
+        console.log(err.message);
+      });
+    }
+
   async deleteFile(filename){
     if(await exists(path+filename)){
-      console.log('exists');
       RNFS.unlink(path+filename)
       .then((success) => {
         console.log('DELETED');
@@ -158,64 +198,324 @@ export default class Insights extends Component {
     }
   }
 
+  toggleLoadModal = () => {
+    this.setState({isLoadModalVisible: !this.state.isLoadModalVisible, loadMode: true});
+    if(!this.state.isLoadModalVisible){
+      //read dir
+      this.readdir();
+      console.log(dirData);
+      //console.log(this.state.dirData);
+      //this.readdir();
+    }
+  };
+
+  toggleDeleteModal = () => {
+    this.setState({isDeleteModalVisible: !this.state.isDeleteModalVisible, deleteMode: true});
+  };
+
+  toggleEmailModal = () => {
+    this.setState({isEmailModalVisible: !this.state.isEmailModalVisible, emailMode: true});
+  };
+
+  //# pleb way of doing this... 
+  setLoadedT = () => {
+    this.setState({
+      dataLoaded: true
+    });
+  }
+
+  //# pleb way of doing this... 
+  setLoadedF = () => {
+    this.setState({
+      dataLoaded: false
+    });
+  }
+
+  componentWillUnmount(){
+    fileListArr = []; //empty array
+  }
+
+  doFileAction = () =>{
+    if(this.state.loadMode === true && this.state.deleteMode === false && this.state.emailMode === false){
+      console.log("load Mode");
+    }
+    if(this.state.loadMode === false && this.state.deleteMode === true && this.state.emailMode === false){
+      console.log("DeleteMode");
+    }
+    if(this.state.loadMode === false && this.state.deleteMode === false && this.state.emailMode === true){
+      console.log("email Mode");
+    }
+    else{
+      console.log("boolean error on doFileAction");
+    }
+  }
 
   render() {
-    return(
-      <View>
-        <Text>Git gud</Text>
-        <Button onPress={() => {this.readFile(this.state.filename)}} title='READ'></Button>
-        <Button onPress={() => {this.deleteFile(this.state.filename)}} title='DELETE'></Button>
-        <Button onPress={() => {this.handleEmail(this.state.filename)}} title='EMAIL'></Button>
-      </View>
-    );
+    if(this.state.dataLoaded){
+      console.log("data loadded");
+    }
+    
+    if(!this.state.dataLoaded && fileListArr.length > 0){
+      // console.log("fillArr longer than 0");
+      // console.log("fillArr :"+fileListArr);
+      let fileListRender = fileListArr.map((fileRender, i) => {
+        //console.log("fillArr RESULT:"+fileListArr);
+         return(
+            <View key={i}>
+              <Icon.Button name="file"
+              onPress={this.doFileAction}
+              >
+                {fileRender}
+              </Icon.Button>
+            </View>
+         );
+      });
+
+      return(
+        <SafeAreaView>
+          <View style={styles.body}>
+            <Modal isVisible={this.state.isLoadModalVisible}
+              hasBackdrop={true}
+              backdropColor={'red'}
+              backdropOpacity={0.3}
+            >
+              <View style={styles.sessionModal}>
+              <View style={styles.modalBtnWrapper}>
+                <Icon.Button 
+                onPress={this.toggleLoadModal}
+                backgroundColor="#1e1e1e"
+                name="cog"
+                >
+                  Load files to display
+                </Icon.Button> 
+              </View>    
+              </View>
+            </Modal>
+            <Modal isVisible={this.state.isDeleteModalVisible}
+              hasBackdrop={true}
+              backdropColor={'red'}
+              backdropOpacity={0.3}
+            >
+              <View style={styles.sessionModal}>
+              <View style={styles.modalBtnWrapper}>
+                <Icon.Button 
+                onPress={this.toggleDeleteModal}
+                backgroundColor="#1e1e1e"
+                name="trash"
+                >
+                  Load files to delete
+                </Icon.Button> 
+              </View>    
+              </View>
+            </Modal>
+            <Modal isVisible={this.state.isEmailModalVisible}
+              hasBackdrop={true}
+              backdropColor={'red'}
+              backdropOpacity={0.3}
+            >
+              <View style={styles.sessionModal}>
+              <View style={styles.modalBtnWrapper}>
+                <Icon.Button 
+                onPress={this.toggleEmailModal}
+                backgroundColor="#1e1e1e"
+                name="inbox"
+                >
+                  Load files to email
+                </Icon.Button> 
+              </View>    
+                </View>
+            </Modal>
+            {/* <View style={styles.graphContainer}>
+               <Linkage style={{width: '100%', height: '50%'}}/>
+            </View> */}
+            <View>
+                  {fileListRender}
+            </View>
+            <View style={styles.controlPanel}>
+              <View style={styles.controlPanelRow}>
+              {/* <Icon.Button backgroundColor="#e74d00" name="file-archive-o" onPress={() => {this.readFile(this.state.filename)}} title='READ'>Load File</Icon.Button>
+              <Icon.Button backgroundColor="#e74d00" name="trash" onPress={() => {this.deleteFile(this.state.filename)}} title='DELETE'>Delete File</Icon.Button>
+              <Icon.Button backgroundColor="#e74d00" name="mail-forward" onPress={() => {this.handleEmail(this.state.filename)}} title='EMAIL'>Email Data</Icon.Button> */}
+              <Icon.Button backgroundColor="#e74d00" name="file-archive-o" onPress={this.toggleLoadModal} title='READ'>Load File</Icon.Button>
+              <Icon.Button backgroundColor="#e74d00" name="trash" onPress={this.toggleDeleteModal} title='DELETE'>Delete File</Icon.Button>
+              <Icon.Button backgroundColor="#e74d00" name="mail-forward" onPress={this.toggleEmailModal} title='EMAIL'>Email Data</Icon.Button>
+              </View>
+            </View>
+          </View>
+          </SafeAreaView>
+      );
+    }
+    if(!this.state.dataLoaded && fileListArr.length === 0){
+      console.log("fillArr = 0");
+      return (
+          <SafeAreaView>
+          <View style={styles.body}>
+            <Modal isVisible={this.state.isLoadModalVisible}
+              hasBackdrop={true}
+              backdropColor={'red'}
+              backdropOpacity={0.3}
+            >
+              <View style={styles.sessionModal}>
+              <View style={styles.modalBtnWrapper}>
+                <Icon.Button 
+                onPress={this.toggleLoadModal}
+                backgroundColor="#1e1e1e"
+                name="cog"
+                >
+                  Load files to display
+                </Icon.Button> 
+              </View>    
+              </View>
+            </Modal>
+            <Modal isVisible={this.state.isDeleteModalVisible}
+              hasBackdrop={true}
+              backdropColor={'red'}
+              backdropOpacity={0.3}
+            >
+              <View style={styles.sessionModal}>
+              <View style={styles.modalBtnWrapper}>
+                <Icon.Button 
+                onPress={this.toggleDeleteModal}
+                backgroundColor="#1e1e1e"
+                name="trash"
+                >
+                 Load files to delete
+                </Icon.Button> 
+              </View>    
+              </View>
+            </Modal>
+            <Modal isVisible={this.state.isEmailModalVisible}
+              hasBackdrop={true}
+              backdropColor={'red'}
+              backdropOpacity={0.3}
+            >
+              <View style={styles.sessionModal}>
+              <View style={styles.modalBtnWrapper}>
+                <Icon.Button 
+                onPress={this.toggleEmailModal}
+                backgroundColor="#1e1e1e"
+                name="inbox"
+                >
+                  Load files to email
+                </Icon.Button> 
+              </View>    
+                </View>
+            </Modal>
+            {/* <View style={styles.graphContainer}>
+               <Linkage style={{width: '100%', height: '50%'}}/>
+            </View> */}
+            <View style={styles.controlPanel}>
+              <View style={styles.controlPanelRow}>
+              {/* <Icon.Button backgroundColor="#e74d00" name="file-archive-o" onPress={() => {this.readFile(this.state.filename)}} title='READ'>Load File</Icon.Button>
+              <Icon.Button backgroundColor="#e74d00" name="trash" onPress={() => {this.deleteFile(this.state.filename)}} title='DELETE'>Delete File</Icon.Button>
+              <Icon.Button backgroundColor="#e74d00" name="mail-forward" onPress={() => {this.handleEmail(this.state.filename)}} title='EMAIL'>Email Data</Icon.Button> */}
+              <Icon.Button backgroundColor="#e74d00" name="file-archive-o" onPress={this.toggleLoadModal} title='READ'>Load File</Icon.Button>
+              <Icon.Button backgroundColor="#e74d00" name="trash" onPress={this.toggleDeleteModal} title='DELETE'>Delete File</Icon.Button>
+              <Icon.Button backgroundColor="#e74d00" name="mail-forward" onPress={this.toggleEmailModal} title='EMAIL'>Email Data</Icon.Button>
+              </View>
+            </View>
+          </View>
+          </SafeAreaView>
+      );
+    }
   }
 
 }
 
 const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'stretch',
-      backgroundColor: 'transparent',
-    },
-    body: {
-      flex: 1,
-      backgroundColor: '#FFFFFF',
-      alignItems: 'flex-start',
-      flexDirection: 'column',
-      height: '100%'
-    },
-    headerRow: {
-      flexDirection: 'row',
-      marginVertical: 10,
-      paddingBottom: 10,
-      paddingRight: 15,
-      paddingLeft: 15,
-      marginBottom: 5,
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      fontSize: 10
-    },
-    row: {
-      flexDirection: 'row',
-      marginVertical: 5,
-      paddingBottom: 5,
-      paddingRight: 15,
-      paddingLeft: 15,
-      marginBottom: 5,
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      fontSize: 100
-    },
-    rowItem: {
-      padding: 1,
-      width: '33%',
-      flexDirection: 'row'
-    },
-    rowItemBold: {
-      padding: 1,
-      width: '33%',
-      flexDirection: 'row'
-    },
-  });
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'stretch',
+    backgroundColor: 'transparent',
+  },
+  body: {
+    //flex: 1,
+    backgroundColor: '#ffffff',
+    alignItems: 'flex-start',
+    flexDirection: 'column',
+    height: '100%',
+    width: '100%'
+  },
+  headerRow: {
+    flexDirection: 'row',
+    marginVertical: 10,
+    paddingBottom: 10,
+    paddingRight: 15,
+    paddingLeft: 15,
+    marginBottom: 5,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    fontSize: 10
+  },
+  row: {
+    flexDirection: 'row',
+    marginVertical: 5,
+    paddingBottom: 5,
+    paddingRight: 15,
+    paddingLeft: 15,
+    marginBottom: 5,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    fontSize: 100
+  },
+  rowItem: {
+    padding: 1,
+    width: '33%',
+    flexDirection: 'row'
+  },
+  rowItemBold: {
+    padding: 1,
+    width: '33%',
+    flexDirection: 'row'
+  },
+  controlPanel : {
+    padding: 5,
+    borderWidth: 2,
+    width: '100%',
+    height: Dimensions.get('window').height/15,
+    bottom: 0,
+    position: 'absolute',
+    alignItems: 'center',
+    backgroundColor: '#e6e6e6'
+  },
+  controlPanelRow: {
+    width: '100%',
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+  },
+  sessionBtn : {
+    width: '20%',
+  },
+  sessionBtnWrapper : {
+    display: 'flex',
+    marginLeft: 10,
+    marginRight: 10,
+    alignItems: 'stretch',
+    marginTop: 0,
+  },
+  graphContainer : {
+    justifyContent: 'center',
+    alignSelf: 'center',
+    backgroundColor: 'transparent',
+    width: '100%',
+    height: '90%',
+    top: 0
+  },
+  setupModal: {
+    justifyContent: 'space-around'
+  },
+  sessionModal: {
+    justifyContent: 'space-around',
+  },
+  modalBtnWrapper: {
+    display: 'flex',
+    marginLeft: 10,
+    marginRight: 10,
+    padding: 2,
+    width: Dimensions.get('window').width/2
+  },
+  modalBtn: {
+
+  }
+});

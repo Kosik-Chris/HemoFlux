@@ -1,7 +1,7 @@
 //#define DEBUG
 //#define OUTPUT_READABLE_ACCELGYRO
 //#define PPG_DEBUG
-#define HRDEBUG
+//#define HRDEBUG
 #define GYRODEBUG
 #define TXDELAY 30
 #define MAX_NUM_PPG 7 //8 -1 (i2c gyro/accel)

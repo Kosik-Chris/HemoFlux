@@ -11,6 +11,7 @@ import React, {PureComponent} from 'react';
 import {StyleSheet, processColor, View, Text, Platform} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import * as Animatable from 'react-native-animatable';
+import RNFS, { exists } from 'react-native-fs';
 import {LineChart} from 'react-native-charts-wrapper';
 import { getDecFrom64 } from '../utility/DecFrom64';
 import BLEconfig from '../../files/bleConfig';
@@ -23,6 +24,7 @@ let r0subscribe, r1subscribe, r2subscribe, r3subscribe, r4subscribe, r5subscribe
 let i0subscribe, i1subscribe, i2subscribe, i3subscribe, i4subscribe, i5subscribe, i6subscribe;
 let g0subscribe, g1subscribe, g2subscribe, g3subscribe, g4subscribe, g5subscribe, g6subscribe;
 let renderCnt = 0;
+let path = RNFS.DocumentDirectoryPath;
 
 //colors used for channels
 const colors = [
@@ -60,8 +62,6 @@ const colors = [
  * updateRate: HARDCODED from delay put into uC. Don't lower below 30, synchronize with uC tx delay
  * timeIndex: the number to display as x value data
  */
-//let dataWidth = 10; 
-// let updateRate = 30; 
 let timeIndex = 0;
 
 /**
@@ -102,16 +102,8 @@ export default class RawDataStream extends PureComponent {
         markerColor: processColor('#F0C0FF8C'),
         textColor: processColor('white'),
       },
-      // deviceLIST: [],
-      // device: {
-      //   connected: false,  
-      //   name: null,
-      //   id: null,
-      //   rssi: null,
-      //   batt_lvl: null,
-      //   heart_rate: null,
-
-      //singular values to add to respective value array, shifted in or added
+      //singular values to add to respective value array, shifted in or concat in.
+      //depending in recording prop passed in added into file or not.
         r0_val: null,
         r1_val: null,
         r2_val: null,
@@ -1266,7 +1258,7 @@ export default class RawDataStream extends PureComponent {
             },
           },
             {
-              values: g5values,
+              values: g6values,
               //time: time,
               label: 'green6',
               config: {
@@ -1423,11 +1415,24 @@ export default class RawDataStream extends PureComponent {
   }
 
   /**
-   * Called when component is initialized (after constructor) to mount channels
+   * Start recording the values after creating file if configured for recording  
+   */
+  record(r0_val,i0_val,g0_val){
+      RNFS.appendFile(path+this.props.filename, r0_val+','+i0_val+','+g0_val+'\r\n', 'ascii')
+      .then((success) => {
+      })
+      .catch((err) => {
+        console.log(err.message);
+      });
+  }
+
+  /**
+   * Called when component is initialized (after constructor) to mount channels.
+   * If recording is enabled, append the data file with the popped value when update rate is triggered
    */
   componentDidMount() {
     if(this.props.device.name != null){
-
+    
     this.subscribeToChannels();
     if (this.state.r0values.length >= this.props.dataWidth) {
       console.log("some mount error..");
@@ -1733,6 +1738,13 @@ export default class RawDataStream extends PureComponent {
               i0_val: i0,
               g0_val : g0
           });
+          //if recording enabled output the enabled channels into the filename
+          if(this.state.r0_val !== null && this.state.r0_val !== undefined &&
+            this.state.i0_val !== null && this.state.i0_val !== undefined &&
+            this.state.g0_val !== null && this.state.g0_val !== undefined
+            && this.props.isRecording){
+            this.record(this.state.r0_val, this.state.i0_val,this.state.g0_val);
+          }
         }
         if(BLEconfig.deviceSetup.NUM_PPG == 2){
           //console.log('r1: '+r1+' i1: '+i1+' g1: '+g1);
@@ -1894,6 +1906,7 @@ export default class RawDataStream extends PureComponent {
       break;
     }
   }
+
 
 /**
  * Function subscribes to the characteristics of the BLE device based on configured PPG
@@ -3652,8 +3665,6 @@ export default class RawDataStream extends PureComponent {
       r6values,i6values,g6values);
     if(this.state.r0_val != null){
       return (
-        // <View style={styles.body}>
-          // <Text style={styles.graphTitle}>Raw Channel Data</Text>
               <LineChart
                 data={config.data}
                 xAxis={config.xAxis}
@@ -3661,19 +3672,14 @@ export default class RawDataStream extends PureComponent {
                 marker={this.state.marker}
                 ref="rawChart"
               />
-        // </View>
       );
     }
     else{
       return(
-        // <View style={styles.body}>
-        // <View style={styles.headerRow}>
           <View style={styles.rowItemBold}>
             <Animatable.Text animation="pulse" easing="ease-out" iterationCount="infinite" style={{fontSize: 35, fontWeight: '100'}}>Loading...</Animatable.Text>
             <Animatable.Text animation="pulse" easing="ease-out" iterationCount="infinite" style={{fontSize: 75}}>❤️</Animatable.Text>
           </View>
-        // </View>
-        // </View>
       );
     }
   }

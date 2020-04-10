@@ -13,6 +13,7 @@ import Animations from '../components/modelcontrol/Animations';
 import Multiple from '../components/modelcontrol/Multiple';
 import RuntimeAssets from '../components/modelcontrol/RuntimeAssets';
 import { createStackNavigator } from 'react-navigation-stack';
+import { SafeAreaView } from 'react-navigation';
 
 export default class ModelView extends PureComponent {
 

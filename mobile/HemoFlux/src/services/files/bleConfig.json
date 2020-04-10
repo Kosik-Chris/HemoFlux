@@ -1,12 +1,13 @@
 
 {
     "devID" : "D8:A0:1D:6A:90:D2",
-    "genAttributeSID" : "00001801-0000-100-8000-00805f9b34fb",
-    "genAccessSID" : "00001800-0000-100-8000-00805f9b34fb",
-    "battLvlSID" : "0000180F-0000-100-8000-00805f9b34fb",
-    "heartRateSID" : "0000180D-0000-100-8000-00805f9b34fb",
-    "heartRateCID" : "00002A37-0000-100-8000-00805f9b34fb",
-    "devInfoSID" : "0000180A-0000-100-8000-00805f9b34fb",
+    "genAttributeSID" : "00001801-0000-1000-8000-00805f9b34fb",
+    "genAccessSID" : "00001800-0000-1000-8000-00805f9b34fb",
+    "battLvlSID" : "0000180F-0000-1000-8000-00805f9b34fb",
+    "battLvlCID" : "00002A19-0000-1000-8000-00805f9b34fb",
+    "heartRateSID" : "0000180D-0000-1000-8000-00805f9b34fb",
+    "heartRateCID" : "00002A37-0000-1000-8000-00805f9b34fb",
+    "devInfoSID" : "0000180A-0000-1000-8000-00805f9b34fb",
     "devInfoCID" : {
         "manufact" : "00002A29-0000-100-8000-00805f9b34fb",
         "modelnum" : "00002A24-0000-100-8000-00805f9b34fb",
