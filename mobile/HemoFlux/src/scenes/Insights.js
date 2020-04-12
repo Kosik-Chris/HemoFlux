@@ -214,6 +214,9 @@ export default class Insights extends Component {
   };
 
   toggleEmailModal = () => {
+    if(this.state.isEmailModalVisible === true){
+      this.handleEmail(this.state.filename);
+    }
     this.setState({isEmailModalVisible: !this.state.isEmailModalVisible, emailMode: true});
   };
 

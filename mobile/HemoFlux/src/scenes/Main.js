@@ -390,7 +390,7 @@ class Main extends PureComponent {
               <Icon.Button
                 name="folder"
                 backgroundColor="#e74d00"
-                onPress={()=> {this.record(this.state.filename)}}
+                onPress={this.toggleSessionModal}
                 >
                   Record
                 </Icon.Button>
@@ -436,15 +436,6 @@ class Main extends PureComponent {
                 onPress={this.disconnect}
                 >
                  Stop
-                </Icon.Button>
-              </View>
-              <View style={styles.sessionBtnWrapper}>
-              <Icon.Button
-                name="folder"
-                backgroundColor="#e74d00"
-                onPress={()=> {this.record(this.state.filename)}}
-                >
-                  Record
                 </Icon.Button>
               </View>
               <View style={styles.sessionBtnWrapper}>
@@ -501,15 +492,6 @@ class Main extends PureComponent {
               </View>
               <View style={styles.sessionBtnWrapper}>
               <Icon.Button
-                name="folder"
-                backgroundColor="#e74d00"
-                onPress={()=> {this.record(this.state.filename)}}
-                >
-                  Record
-                </Icon.Button>
-              </View>
-              <View style={styles.sessionBtnWrapper}>
-              <Icon.Button
                 name="filter"
                 backgroundColor="#e74d00"
                 //onPress={() => this.props.navigation.navigate('What')}
@@ -558,15 +540,6 @@ class Main extends PureComponent {
                 onPress={this.disconnect}
                 >
                  Stop
-                </Icon.Button>
-              </View>
-              <View style={styles.sessionBtnWrapper}>
-              <Icon.Button
-                name="folder"
-                backgroundColor="#e74d00"
-                onPress={()=> {this.record(this.state.filename)}}
-                >
-                  Record
                 </Icon.Button>
               </View>
               <View style={styles.sessionBtnWrapper}>
