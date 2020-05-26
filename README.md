@@ -30,3 +30,16 @@ Partitioned into 3 segments: board files (easy eda source), ESP32 firmware, Xpla
 1. Open HemoFlux.ino under /firmware/HemoFlux
 2. Install I2Cdev as a library
 3. **IMPORTANT** currently modified part of the Arduino Core for ESP32 package => BLECharacteristic.cpp. All that is modified is the reversing of the order of bytes set. Will change this in future updates so the client will interpret but this was the "prototype quick solution". The modified file is included in the documents folder.
+
+### Further Aims of this project
+
+1. Animate and annotate a 3D model to realize better blood flow feature extraction
+
+### Current issues/work
+
+1. React Native RAM consumption is dangerously high, performance issues for real time streaming.
+2. Fixing working file output/ app local information
+3. Implementing feature extraction Matlab work into javascript/ C code
+4. Refactoring main BLE streaming into graph code into maintainable format.
+5. Continued hardware debugging, currently random disconnects while running firmware.
+6. Migration away from Arduino to Espressif, possible migration from React Native to purely native applications.
