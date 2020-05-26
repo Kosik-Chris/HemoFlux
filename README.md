@@ -1,5 +1,5 @@
 # HemoFlux
-god tier ppg system
+Wearable Photoplethysmography for blood flow analysis.
 
 How to install:
 
