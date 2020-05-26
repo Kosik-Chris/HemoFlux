@@ -3,7 +3,7 @@ Wearable Photoplethysmography for blood flow analysis.
 
 Example Streaming of Red, Infrared, and green wavelength values to Note 9 Android device:
 
-![Android Note 9 mobile app Gif](https://github.com/Kosik-Chris/HemoFlux/tree/master/documents/Note9_BetaStream.gif?raw=true)
+![Android Note 9 mobile app Gif](documents/Note9_BetaStream.gif)
 
 
 
@@ -41,7 +41,7 @@ Partitioned into 3 segments: board files (easy eda source), ESP32 firmware, Xpla
 
 This is (currently) a very very easy project to implement on your breadboard and get working. Additionally, see the schematics under board directory for details.
 
-![earlyBreadboard.jpg](https://github.com/Kosik-Chris/HemoFlux/tree/master/documents/earlyBreadboard.jpg?raw=true)
+![earlyBreadboard.jpg](documents/earlyBreadboard.jpg)
 
 ### Further Aims of this project
 
