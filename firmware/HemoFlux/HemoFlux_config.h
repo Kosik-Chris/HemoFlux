@@ -77,20 +77,3 @@
 #define imu_buffersize 1000     //Amount of readings used to average, make it higher to get more precision but sketch will be slower  (default:1000)
 #define acel_deadzone 8          //Acelerometer error allowed, make it lower to get more precision, but sketch may not converge  (default:8)
 #define giro_deadzone 1
-
-//typedef struct _dimensions {
-//  uint16_t ax;
-//  uint16_t ay;
-//  uint16_t az;
-//  uint16_t gx;
-//  uint16_t gy;
-//  uint16_t gz;
-//}dimensions;
-
-//type to handle all i2c devices attached to esp32
-//typedef struct _i2cslave {
-//  uint16_t ADDR; //device address
-//  char *type; //string description
-//  char *location; //physical location of sensor
-//  int tcase; //slot sensor attached to i2c multiplex
-//} I2CSLAVE;
