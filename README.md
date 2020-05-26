@@ -1,6 +1,12 @@
 # HemoFlux
 Wearable Photoplethysmography for blood flow analysis.
 
+Example Streaming of Red, Infrared, and green wavelength values to Note 9 Android device:
+
+![Android Note 9 mobile app Gif](https://github.com/Kosik-Chris/HemoFlux/documents/Note9_BetaStream.gif)
+
+
+
 ## Introduction
 The Aim of this project is to create a pseudo realtime embedded device for streaming of sensor values to a smart phone or computer (referred to as client).
 
@@ -31,13 +37,19 @@ Partitioned into 3 segments: board files (easy eda source), ESP32 firmware, Xpla
 2. Install I2Cdev as a library
 3. **IMPORTANT** currently modified part of the Arduino Core for ESP32 package => BLECharacteristic.cpp. All that is modified is the reversing of the order of bytes set. Will change this in future updates so the client will interpret but this was the "prototype quick solution". The modified file is included in the documents folder.
 
+### Hardware setup
+
+This is (currently) a very very easy project to implement on your breadboard and get working. Additionally, see the schematics under board directory for details.
+
+![Android Note 9 mobile app Gif](https://github.com/Kosik-Chris/HemoFlux/documents/earlyBreadboard.jpg)
+
 ### Further Aims of this project
 
 1. Animate and annotate a 3D model to realize better blood flow feature extraction
 
 ### Current issues/work
 
-1. React Native RAM consumption is dangerously high, performance issues for real time streaming.
+1. React Native RAM consumption is dangerously high, performance issues for real time streaming. Performance analysis (starting with code/ algorithm implementation) is the starting point for further work.
 2. Fixing working file output/ app local information
 3. Implementing feature extraction Matlab work into javascript/ C code
 4. Refactoring main BLE streaming into graph code into maintainable format.
